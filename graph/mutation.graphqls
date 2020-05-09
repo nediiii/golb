@@ -1,6 +1,0 @@
-
-type Mutation {
-  createSetting(key: String!, value: String!): Setting!
-  deleteSetting(id: ID!): Boolean!
-  updateSetting(id: ID!, key: String!, value: String!): Setting!
-}

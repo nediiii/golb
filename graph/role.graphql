@@ -1,0 +1,42 @@
+"The `Role` type, represents the response of a role object."
+type Role {
+  id: ID!
+  name: String
+  description: String
+  userConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): RoleUsersConnection
+}
+
+"The `InputRole` type, represents the request for set a role."
+input InputRole {
+  name: String
+  description: String
+}
+
+type RolesConnection {
+  pageInfo: PageInfo!
+  edges: [RolesEdge!]
+  totalCount: Int!
+  roles: [Role!]
+}
+
+type RolesEdge {
+  node: Role
+  cursor: String!
+}
+
+type UserRolesConnection {
+  pageInfo: PageInfo!
+  edges: [UserRolesEdge!]
+  totalCount: Int!
+  roles: [Role!]
+}
+
+type UserRolesEdge {
+  node: Role
+  cursor: String!
+}

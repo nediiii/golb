@@ -4,10 +4,12 @@ import (
 	"log"
 
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
+	"golb/dataloader"
 	"golb/graph"
 	"golb/graph/generated"
 )
@@ -20,7 +22,6 @@ func main() {
 
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
-	log.SetOutput(gin.DefaultWriter) // You may need this
 	log.Println("[debug] visit http://0.0.0.0:8090")
 	r.Run(":8090")
 }
@@ -31,8 +32,14 @@ func graphqlHandler() gin.HandlerFunc {
 	// Resolver is in the resolver.go file
 	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
 
+	var mb int64 = 1 << 20
+	h.AddTransport(transport.MultipartForm{
+		MaxMemory:     32 * mb,
+		MaxUploadSize: 50 * mb,
+	})
+
 	return func(c *gin.Context) {
-		h.ServeHTTP(c.Writer, c.Request)
+		dataloader.Middleware(h).ServeHTTP(c.Writer, c.Request)
 	}
 }
 
@@ -41,6 +48,7 @@ func playgroundHandler() gin.HandlerFunc {
 	h := playground.Handler("GraphQL", "/query")
 
 	return func(c *gin.Context) {
+
 		h.ServeHTTP(c.Writer, c.Request)
 	}
 }

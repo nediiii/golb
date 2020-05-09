@@ -1,8 +1,0 @@
-# GraphQL schema example
-#
-# https://gqlgen.com/getting-started/
-
-type Query {
-  settings: [Setting]
-  setting(id: ID,key: String): Setting
-}

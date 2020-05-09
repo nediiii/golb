@@ -1,0 +1,12 @@
+type Mutation {
+  # file
+  singleUpload(file: Upload!): File!
+  singleUploadWithPayload(req: UploadFile!): File!
+  multipleUpload(files: [Upload!]!): [File!]!
+  multipleUploadWithPayload(req: [UploadFile!]!): [File!]!
+
+  # setting
+  createSetting(key: String!, value: String!): Setting!
+  deleteSetting(id: ID!): Boolean!
+  updateSetting(id: ID!, key: String!, value: String!): Setting!
+}

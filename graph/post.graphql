@@ -1,0 +1,62 @@
+type Post {
+  id: ID!
+  title: String!
+  html: String!
+  markdown: String!
+  tagConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): PostTagsConnection
+  authorConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): PostAuthorsConnection
+  primaryAuthor: User
+}
+
+type PostsConnection {
+  pageInfo: PageInfo!
+  edges: [PostsEdge!]
+  totalCount: Int!
+  posts: [Post!]
+}
+
+type PostsEdge {
+  node: Post
+  cursor: String!
+}
+
+type TagPostsConnection {
+  pageInfo: PageInfo!
+  edges: [TagPostsEdge!]
+  totalCount: Int!
+  posts: [Post!]
+}
+
+type TagPostsEdge {
+  node: Post
+  cursor: String!
+}
+
+type UserPostsConnection {
+  pageInfo: PageInfo!
+  edges: [UserPostsEdge!]
+  totalCount: Int!
+  posts: [Post!]
+}
+
+type UserPostsEdge {
+  node: Post
+  cursor: String!
+}
+
+input InputPost {
+  id: ID
+  title: String
+  html: String
+  markdown: String
+}

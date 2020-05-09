@@ -1,0 +1,11 @@
+type PageInfo {
+  hasPreviousPage: Boolean!
+  hasNextPage: Boolean!
+  startCursor: String!
+  endCursor: String!
+}
+
+type Edges {
+  node: String
+  cursor: String
+}

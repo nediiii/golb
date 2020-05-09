@@ -1,0 +1,47 @@
+# GraphQL schema example
+#
+# https://gqlgen.com/getting-started/
+
+type Query {
+  setting(id: ID, key: String): Setting
+
+  role: Role
+
+  user: User
+
+  tag: Tag
+
+  post: Post
+
+  # Lists
+
+  allSettings(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): SettingsConnection
+
+  allRoles(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): RolesConnection
+
+  allUsers(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): UsersConnection
+
+  allTags(first: Int, last: Int, after: String, before: String): TagsConnection
+
+  allPosts(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): PostsConnection
+}

@@ -1,0 +1,24 @@
+"The `Setting` type, represents the response of system setting item."
+type Setting {
+  id: ID!
+  key: String
+  value: String
+}
+
+"The `InputSetting` type, represents the request for set a setting."
+input InputSetting {
+  key: String
+  value: String
+}
+
+type SettingsConnection {
+  pageInfo: PageInfo!
+  edges: [SettingsEdge!]
+  totalCount: Int!
+  settings: [Setting!]
+}
+
+type SettingsEdge {
+  node: Setting
+  cursor: String!
+}

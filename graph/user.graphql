@@ -1,0 +1,64 @@
+"The `User` type, represents the response of a user object."
+type User {
+  id: ID!
+  name: String
+  email: String
+  visibility: String
+  bio: String
+  roleConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): UserRolesConnection
+  postConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): UserPostsConnection
+}
+
+"The `InputUser` type, represents the request for set a user."
+input InputUser {
+  name: String
+  email: String
+  visibility: String
+  bio: String
+}
+
+type UsersConnection {
+  pageInfo: PageInfo!
+  edges: [UsersEdge!]
+  totalCount: Int!
+  users: [User!]
+}
+
+type UsersEdge {
+  node: User
+  cursor: String!
+}
+
+type RoleUsersConnection {
+  pageInfo: PageInfo!
+  edges: [RoleUsersEdge!]
+  totalCount: Int!
+  users: [User!]
+}
+
+type RoleUsersEdge {
+  node: User
+  cursor: String!
+}
+
+type PostAuthorsConnection {
+  pageInfo: PageInfo!
+  edges: [PostAuthorsEdge!]
+  totalCount: Int!
+  authors: [User!]
+}
+
+type PostAuthorsEdge {
+  node: User
+  cursor: String!
+}

@@ -1,0 +1,38 @@
+type Tag {
+  id: ID!
+  name: String
+  description: String
+  postConnection(
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): TagPostsConnection
+}
+type TagsConnection {
+  pageInfo: PageInfo!
+  edges: [TagsEdge!]
+  totalCount: Int!
+  tags: [Tag!]
+}
+
+type TagsEdge {
+  node: Tag
+  cursor: String!
+}
+type PostTagsConnection {
+  pageInfo: PageInfo!
+  edges: [PostTagsEdge!]
+  totalCount: Int!
+  tags: [Tag!]
+}
+
+type PostTagsEdge {
+  node: Tag
+  cursor: String!
+}
+
+input InputTag {
+  name: String
+  description: String
+}
