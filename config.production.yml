@@ -1,0 +1,10 @@
+site:
+  domain: "example.com"
+
+database:
+  host: "localhost"
+  dbname: "golbat"
+  port: 5432
+  user: "golbat"
+  password: "golbat"
+  debug: false

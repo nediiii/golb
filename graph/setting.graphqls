@@ -1,0 +1,15 @@
+
+
+"The `Setting` type, represents the response of uploading a file."
+type Setting {
+  id: ID!
+  key: String
+  value: String
+}
+
+
+"The `Setting` type, represents the request for setting a setting."
+input InputSetting {
+  key: String
+  value: String
+}
