@@ -9,4 +9,54 @@ type Mutation {
   createSetting(key: String!, value: String!): Setting!
   deleteSetting(id: ID!): Boolean!
   updateSetting(id: ID!, key: String!, value: String!): Setting!
+  # role
+  createRole(name: String!, description: String): Role!
+  deleteRole(id: ID!): Boolean!
+  updateRole(id: ID!, name: String, description: String): Role!
+
+  # user
+  createUser(slug: String!, name: String!, password: String!): User!
+  deleteUser(id: ID!): Boolean!
+  updateUser(id: ID!, slug: String, name: String, password: String): User!
+
+  # tag
+  createTag(slug: String!, name: String!, description: String): Tag!
+  deleteTag(id: ID!): Boolean!
+  updateTag(id: ID!, slug: String, name: String, description: String): Tag!
+
+  # post
+  createPost(
+    slug: String!
+    title: String!
+    markdown: String!
+    html: String!
+    primaryAuthorId: ID!
+    tags: [String!]
+    authors: [ID!]
+    excerpt: String
+    fetured: Boolean
+    paged: Boolean
+    publishedBy: Date
+    image: String
+    language: String
+    status: String
+  ): Post!
+  deletePost(id: ID!): Boolean!
+  updatePost(
+    id: ID!
+    slug: String
+    title: String
+    markdown: String
+    html: String
+    primaryAuthorId: ID
+    tags: [String!]
+    authors: [ID!]
+    excerpt: String
+    fetured: Boolean
+    paged: Boolean
+    publishedBy: Date
+    image: String
+    language: String
+    status: String
+  ): Post!
 }

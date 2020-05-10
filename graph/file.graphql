@@ -1,6 +1,3 @@
-"The `Upload` scalar type represents a multipart file upload."
-scalar Upload
-
 "The `File` type, represents the response of uploading a file."
 type File {
   id: Int!

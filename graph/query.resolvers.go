@@ -23,25 +23,78 @@ func (r *queryResolver) Setting(ctx context.Context, id *string, key *string) (*
 	}
 	var v models.Setting
 	if tx.First(&v).RecordNotFound() {
-		return nil, errors.New("no record")
+		return nil, errors.New("no record match")
 	}
 	return &v, nil
 }
 
 func (r *queryResolver) Role(ctx context.Context, id *string, name *string) (*models.Role, error) {
-	panic(fmt.Errorf("not implemented"))
+	tx := services.DB
+	if id != nil {
+		tx = tx.Where("id = ?", id)
+	}
+	if name != nil {
+		tx = tx.Where("name = ?", name)
+	}
+	var v models.Role
+	if tx.First(&v).RecordNotFound() {
+		return nil, errors.New("no record match")
+	}
+	return &v, nil
 }
 
 func (r *queryResolver) User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	tx := services.DB
+	if id != nil {
+		tx = tx.Where("id = ?", id)
+	}
+	if slug != nil {
+		tx = tx.Where("slug = ?", slug)
+	}
+	if name != nil {
+		tx = tx.Where("name = ?", name)
+	}
+	var v models.User
+	if tx.First(&v).RecordNotFound() {
+		return nil, errors.New("no record match")
+	}
+	return &v, nil
 }
 
 func (r *queryResolver) Tag(ctx context.Context, id *string, slug *string, name *string) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented"))
+	tx := services.DB
+	if id != nil {
+		tx = tx.Where("id = ?", id)
+	}
+	if slug != nil {
+		tx = tx.Where("slug = ?", slug)
+	}
+	if name != nil {
+		tx = tx.Where("name = ?", name)
+	}
+	var v models.Tag
+	if tx.First(&v).RecordNotFound() {
+		return nil, errors.New("no record match")
+	}
+	return &v, nil
 }
 
 func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name *string) (*models.Post, error) {
-	panic(fmt.Errorf("not implemented"))
+	tx := services.DB
+	if id != nil {
+		tx = tx.Where("id = ?", id)
+	}
+	if slug != nil {
+		tx = tx.Where("slug = ?", slug)
+	}
+	if name != nil {
+		tx = tx.Where("name = ?", name)
+	}
+	var v models.Post
+	if tx.First(&v).RecordNotFound() {
+		return nil, errors.New("no record match")
+	}
+	return &v, nil
 }
 
 func (r *queryResolver) AllSettings(ctx context.Context, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error) {

@@ -1,7 +1,8 @@
 "The `User` type, represents the response of a user object."
 type User {
   id: ID!
-  name: String
+  name: String!
+  slug: String!
   email: String
   visibility: String
   bio: String

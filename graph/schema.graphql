@@ -1,0 +1,5 @@
+"The `Upload` scalar type represents a multipart file upload."
+scalar Upload
+
+"The `Date` scalar type represents a integer timestamp."
+scalar Date

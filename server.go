@@ -1,12 +1,9 @@
 package main
 
 import (
-	"context"
 	"log"
 
-	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
-	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
@@ -38,12 +35,14 @@ func graphqlHandler() gin.HandlerFunc {
 	})
 
 	h := handler.NewDefaultServer(es)
-	complexity := &extension.ComplexityLimit{
-		Func: func(ctx context.Context, rc *graphql.OperationContext) int {
-			return 50
-		},
-	}
-	h.Use(complexity)
+
+	// add complexity limit
+	// complexity := &extension.ComplexityLimit{
+	// 	Func: func(ctx context.Context, rc *graphql.OperationContext) int {
+	// 		return 50
+	// 	},
+	// }
+	// h.Use(complexity)
 
 	var mb int64 = 1 << 20
 	h.AddTransport(transport.MultipartForm{
