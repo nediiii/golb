@@ -9,10 +9,10 @@ import (
 	"golb/models"
 )
 
-// UserLoaderConfig captures the config to create a new UserLoader
-type UserLoaderConfig struct {
+// UserRolesLoaderConfig captures the config to create a new UserRolesLoader
+type UserRolesLoaderConfig struct {
 	// Fetch is a method that provides the data for the loader
-	Fetch func(keys []string) ([]*models.User, []error)
+	Fetch func(keys []uint) ([][]*models.Role, []error)
 
 	// Wait is how long wait before sending a batch
 	Wait time.Duration
@@ -21,19 +21,19 @@ type UserLoaderConfig struct {
 	MaxBatch int
 }
 
-// NewUserLoader creates a new UserLoader given a fetch, wait, and maxBatch
-func NewUserLoader(config UserLoaderConfig) *UserLoader {
-	return &UserLoader{
+// NewUserRolesLoader creates a new UserRolesLoader given a fetch, wait, and maxBatch
+func NewUserRolesLoader(config UserRolesLoaderConfig) *UserRolesLoader {
+	return &UserRolesLoader{
 		fetch:    config.Fetch,
 		wait:     config.Wait,
 		maxBatch: config.MaxBatch,
 	}
 }
 
-// UserLoader batches and caches requests
-type UserLoader struct {
+// UserRolesLoader batches and caches requests
+type UserRolesLoader struct {
 	// this method provides the data for the loader
-	fetch func(keys []string) ([]*models.User, []error)
+	fetch func(keys []uint) ([][]*models.Role, []error)
 
 	// how long to done before sending a batch
 	wait time.Duration
@@ -44,51 +44,51 @@ type UserLoader struct {
 	// INTERNAL
 
 	// lazily created cache
-	cache map[string]*models.User
+	cache map[uint][]*models.Role
 
 	// the current batch. keys will continue to be collected until timeout is hit,
 	// then everything will be sent to the fetch method and out to the listeners
-	batch *userLoaderBatch
+	batch *userRolesLoaderBatch
 
 	// mutex to prevent races
 	mu sync.Mutex
 }
 
-type userLoaderBatch struct {
-	keys    []string
-	data    []*models.User
+type userRolesLoaderBatch struct {
+	keys    []uint
+	data    [][]*models.Role
 	error   []error
 	closing bool
 	done    chan struct{}
 }
 
-// Load a User by key, batching and caching will be applied automatically
-func (l *UserLoader) Load(key string) (*models.User, error) {
+// Load a Role by key, batching and caching will be applied automatically
+func (l *UserRolesLoader) Load(key uint) ([]*models.Role, error) {
 	return l.LoadThunk(key)()
 }
 
-// LoadThunk returns a function that when called will block waiting for a User.
+// LoadThunk returns a function that when called will block waiting for a Role.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *UserLoader) LoadThunk(key string) func() (*models.User, error) {
+func (l *UserRolesLoader) LoadThunk(key uint) func() ([]*models.Role, error) {
 	l.mu.Lock()
 	if it, ok := l.cache[key]; ok {
 		l.mu.Unlock()
-		return func() (*models.User, error) {
+		return func() ([]*models.Role, error) {
 			return it, nil
 		}
 	}
 	if l.batch == nil {
-		l.batch = &userLoaderBatch{done: make(chan struct{})}
+		l.batch = &userRolesLoaderBatch{done: make(chan struct{})}
 	}
 	batch := l.batch
 	pos := batch.keyIndex(l, key)
 	l.mu.Unlock()
 
-	return func() (*models.User, error) {
+	return func() ([]*models.Role, error) {
 		<-batch.done
 
-		var data *models.User
+		var data []*models.Role
 		if pos < len(batch.data) {
 			data = batch.data[pos]
 		}
@@ -113,72 +113,73 @@ func (l *UserLoader) LoadThunk(key string) func() (*models.User, error) {
 
 // LoadAll fetches many keys at once. It will be broken into appropriate sized
 // sub batches depending on how the loader is configured
-func (l *UserLoader) LoadAll(keys []string) ([]*models.User, []error) {
-	results := make([]func() (*models.User, error), len(keys))
+func (l *UserRolesLoader) LoadAll(keys []uint) ([][]*models.Role, []error) {
+	results := make([]func() ([]*models.Role, error), len(keys))
 
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
 
-	users := make([]*models.User, len(keys))
+	roles := make([][]*models.Role, len(keys))
 	errors := make([]error, len(keys))
 	for i, thunk := range results {
-		users[i], errors[i] = thunk()
+		roles[i], errors[i] = thunk()
 	}
-	return users, errors
+	return roles, errors
 }
 
-// LoadAllThunk returns a function that when called will block waiting for a Users.
+// LoadAllThunk returns a function that when called will block waiting for a Roles.
 // This method should be used if you want one goroutine to make requests to many
 // different data loaders without blocking until the thunk is called.
-func (l *UserLoader) LoadAllThunk(keys []string) func() ([]*models.User, []error) {
-	results := make([]func() (*models.User, error), len(keys))
+func (l *UserRolesLoader) LoadAllThunk(keys []uint) func() ([][]*models.Role, []error) {
+	results := make([]func() ([]*models.Role, error), len(keys))
 	for i, key := range keys {
 		results[i] = l.LoadThunk(key)
 	}
-	return func() ([]*models.User, []error) {
-		users := make([]*models.User, len(keys))
+	return func() ([][]*models.Role, []error) {
+		roles := make([][]*models.Role, len(keys))
 		errors := make([]error, len(keys))
 		for i, thunk := range results {
-			users[i], errors[i] = thunk()
+			roles[i], errors[i] = thunk()
 		}
-		return users, errors
+		return roles, errors
 	}
 }
 
 // Prime the cache with the provided key and value. If the key already exists, no change is made
 // and false is returned.
 // (To forcefully prime the cache, clear the key first with loader.clear(key).prime(key, value).)
-func (l *UserLoader) Prime(key string, value *models.User) bool {
+func (l *UserRolesLoader) Prime(key uint, value []*models.Role) bool {
 	l.mu.Lock()
 	var found bool
 	if _, found = l.cache[key]; !found {
 		// make a copy when writing to the cache, its easy to pass a pointer in from a loop var
 		// and end up with the whole cache pointing to the same value.
-		cpy := *value
-		l.unsafeSet(key, &cpy)
+		cpy := make([]*models.Role, len(value))
+		copy(cpy, value)
+		l.unsafeSet(key, cpy)
 	}
 	l.mu.Unlock()
 	return !found
 }
 
 // Clear the value at key from the cache, if it exists
-func (l *UserLoader) Clear(key string) {
+func (l *UserRolesLoader) Clear(key uint) {
 	l.mu.Lock()
 	delete(l.cache, key)
 	l.mu.Unlock()
 }
 
-func (l *UserLoader) unsafeSet(key string, value *models.User) {
+func (l *UserRolesLoader) unsafeSet(key uint, value []*models.Role) {
 	if l.cache == nil {
-		l.cache = map[string]*models.User{}
+		l.cache = map[uint][]*models.Role{}
 	}
 	l.cache[key] = value
 }
 
 // keyIndex will return the location of the key in the batch, if its not found
 // it will add the key to the batch
-func (b *userLoaderBatch) keyIndex(l *UserLoader, key string) int {
+func (b *userRolesLoaderBatch) keyIndex(l *UserRolesLoader, key uint) int {
 	for i, existingKey := range b.keys {
 		if key == existingKey {
 			return i
@@ -202,7 +203,7 @@ func (b *userLoaderBatch) keyIndex(l *UserLoader, key string) int {
 	return pos
 }
 
-func (b *userLoaderBatch) startTimer(l *UserLoader) {
+func (b *userRolesLoaderBatch) startTimer(l *UserRolesLoader) {
 	time.Sleep(l.wait)
 	l.mu.Lock()
 
@@ -218,7 +219,7 @@ func (b *userLoaderBatch) startTimer(l *UserLoader) {
 	b.end(l)
 }
 
-func (b *userLoaderBatch) end(l *UserLoader) {
+func (b *userRolesLoaderBatch) end(l *UserRolesLoader) {
 	b.data, b.error = l.fetch(b.keys)
 	close(b.done)
 }

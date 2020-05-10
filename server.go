@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"log"
 
+	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
+	"github.com/99designs/gqlgen/graphql/handler/extension"
 	"github.com/99designs/gqlgen/graphql/handler/transport"
 	"github.com/99designs/gqlgen/graphql/playground"
 	"github.com/gin-contrib/cors"
@@ -30,7 +33,17 @@ func main() {
 func graphqlHandler() gin.HandlerFunc {
 	// NewExecutableSchema and Config are in the generated.go file
 	// Resolver is in the resolver.go file
-	h := handler.NewDefaultServer(generated.NewExecutableSchema(generated.Config{Resolvers: &graph.Resolver{}}))
+	es := generated.NewExecutableSchema(generated.Config{
+		Resolvers: &graph.Resolver{},
+	})
+
+	h := handler.NewDefaultServer(es)
+	complexity := &extension.ComplexityLimit{
+		Func: func(ctx context.Context, rc *graphql.OperationContext) int {
+			return 50
+		},
+	}
+	h.Use(complexity)
 
 	var mb int64 = 1 << 20
 	h.AddTransport(transport.MultipartForm{

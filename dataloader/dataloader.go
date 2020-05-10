@@ -8,6 +8,8 @@ import (
 
 	"golb/models"
 	"golb/services"
+
+	"github.com/jinzhu/gorm"
 )
 
 const loadersKey = ContextKey("dataloaders")
@@ -15,33 +17,54 @@ const loadersKey = ContextKey("dataloaders")
 // ContextKey ContextKey
 type ContextKey string
 
-// Loaders Loaders
-type Loaders struct {
-	Users RoleUsersLoader
+// DataLoader DataLoader
+type DataLoader interface {
 }
 
-// Middleware Middleware
-func Middleware(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), loadersKey, &Loaders{
-			Users: RoleUsersLoader{
-				maxBatch: 100,
-				wait:     1 * time.Millisecond,
-				fetch: func(keys []uint) ([][]*models.User, []error) {
-					fmt.Println("调用")
-					tx := services.DB
-					r := &models.Role{}
-					r.ID = keys[0]
-					var list []*models.User
-					tx.Model(r).Related(&list, "Users").Find(&list)
-					v := make([][]*models.User, 1)
-					v[0] = list
-					return v, nil
-				},
+// Loaders Loaders
+type Loaders struct {
+	RoleUsersLoader
+	UserRolesLoader
+}
+
+// loaders loaders
+var (
+	loaders = &Loaders{
+		RoleUsersLoader: RoleUsersLoader{
+			maxBatch: 100,
+			wait:     1 * time.Millisecond,
+			fetch: func(keys []uint) ([][]*models.User, []error) {
+				fmt.Println("调用")
+				tx := services.DB
+				v := make([][]*models.User, len(keys))
+				for i, k := range keys {
+					tx.Model(&models.Role{Model: gorm.Model{ID: k}}).Related(&v[i], "Users")
+				}
+				return v, nil
 			},
-		})
+		},
+		UserRolesLoader: UserRolesLoader{
+			maxBatch: 100,
+			wait:     1 * time.Millisecond,
+			fetch: func(keys []uint) ([][]*models.Role, []error) {
+				fmt.Println("调用")
+				tx := services.DB
+				v := make([][]*models.Role, len(keys))
+				for i, k := range keys {
+					tx.Model(&models.User{Model: gorm.Model{ID: k}}).Related(&v[i], "Roles")
+				}
+				return v, nil
+			},
+		},
+	}
+)
+
+// Middleware Middleware
+func Middleware(h http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := context.WithValue(r.Context(), loadersKey, loaders)
 		r = r.WithContext(ctx)
-		next.ServeHTTP(w, r)
+		h.ServeHTTP(w, r)
 	})
 }
 

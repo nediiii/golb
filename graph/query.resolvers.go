@@ -28,19 +28,19 @@ func (r *queryResolver) Setting(ctx context.Context, id *string, key *string) (*
 	return &v, nil
 }
 
-func (r *queryResolver) Role(ctx context.Context) (*models.Role, error) {
+func (r *queryResolver) Role(ctx context.Context, id *string, name *string) (*models.Role, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) User(ctx context.Context) (*models.User, error) {
+func (r *queryResolver) User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Tag(ctx context.Context) (*models.Tag, error) {
+func (r *queryResolver) Tag(ctx context.Context, id *string, slug *string, name *string) (*models.Tag, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 
-func (r *queryResolver) Post(ctx context.Context) (*models.Post, error) {
+func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name *string) (*models.Post, error) {
 	panic(fmt.Errorf("not implemented"))
 }
 

@@ -10,12 +10,12 @@ import (
 // User user model
 type User struct {
 	gorm.Model
-	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`
-	Name            string    `gorm:"unique;not null"`
 	Roles           []*Role   `gorm:"many2many:user_roles"`
 	Posts           []*Post   `gorm:"many2many:user_posts"`
+	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`
+	Slug            string    `gorm:"unique_index;not null"`
+	Name            string    `gorm:"not null"`
 	Password        string    `gorm:"not null"`
-	Slug            string
 	Email           string
 	Image           string
 	Cover           string

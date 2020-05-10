@@ -130,11 +130,11 @@ type ComplexityRoot struct {
 		AllSettings func(childComplexity int, first *int, last *int, after *string, before *string) int
 		AllTags     func(childComplexity int, first *int, last *int, after *string, before *string) int
 		AllUsers    func(childComplexity int, first *int, last *int, after *string, before *string) int
-		Post        func(childComplexity int) int
-		Role        func(childComplexity int) int
+		Post        func(childComplexity int, id *string, slug *string, name *string) int
+		Role        func(childComplexity int, id *string, name *string) int
 		Setting     func(childComplexity int, id *string, key *string) int
-		Tag         func(childComplexity int) int
-		User        func(childComplexity int) int
+		Tag         func(childComplexity int, id *string, slug *string, name *string) int
+		User        func(childComplexity int, id *string, slug *string, name *string) int
 	}
 
 	Role struct {
@@ -281,10 +281,10 @@ type PostResolver interface {
 }
 type QueryResolver interface {
 	Setting(ctx context.Context, id *string, key *string) (*models.Setting, error)
-	Role(ctx context.Context) (*models.Role, error)
-	User(ctx context.Context) (*models.User, error)
-	Tag(ctx context.Context) (*models.Tag, error)
-	Post(ctx context.Context) (*models.Post, error)
+	Role(ctx context.Context, id *string, name *string) (*models.Role, error)
+	User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error)
+	Tag(ctx context.Context, id *string, slug *string, name *string) (*models.Tag, error)
+	Post(ctx context.Context, id *string, slug *string, name *string) (*models.Post, error)
 	AllSettings(ctx context.Context, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error)
 	AllRoles(ctx context.Context, first *int, last *int, after *string, before *string) (*model.RolesConnection, error)
 	AllUsers(ctx context.Context, first *int, last *int, after *string, before *string) (*model.UsersConnection, error)
@@ -730,14 +730,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Post(childComplexity), true
+		args, err := ec.field_Query_post_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Post(childComplexity, args["id"].(*string), args["slug"].(*string), args["name"].(*string)), true
 
 	case "Query.role":
 		if e.complexity.Query.Role == nil {
 			break
 		}
 
-		return e.complexity.Query.Role(childComplexity), true
+		args, err := ec.field_Query_role_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Role(childComplexity, args["id"].(*string), args["name"].(*string)), true
 
 	case "Query.setting":
 		if e.complexity.Query.Setting == nil {
@@ -756,14 +766,24 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			break
 		}
 
-		return e.complexity.Query.Tag(childComplexity), true
+		args, err := ec.field_Query_tag_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Tag(childComplexity, args["id"].(*string), args["slug"].(*string), args["name"].(*string)), true
 
 	case "Query.user":
 		if e.complexity.Query.User == nil {
 			break
 		}
 
-		return e.complexity.Query.User(childComplexity), true
+		args, err := ec.field_Query_user_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.User(childComplexity, args["id"].(*string), args["slug"].(*string), args["name"].(*string)), true
 
 	case "Role.description":
 		if e.complexity.Role.Description == nil {
@@ -1423,13 +1443,13 @@ input InputPost {
 type Query {
   setting(id: ID, key: String): Setting
 
-  role: Role
+  role(id: ID, name: String): Role
 
-  user: User
+  user(id: ID, slug: String, name: String): User
 
-  tag: Tag
+  tag(id: ID, slug: String, name: String): Tag
 
-  post: Post
+  post(id: ID, slug: String, name: String): Post
 
   # Lists
 
@@ -2045,6 +2065,58 @@ func (ec *executionContext) field_Query_allUsers_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_post_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["slug"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_role_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg1
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_setting_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -2064,6 +2136,66 @@ func (ec *executionContext) field_Query_setting_args(ctx context.Context, rawArg
 		}
 	}
 	args["key"] = arg1
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_tag_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["slug"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_user_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["slug"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["name"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["name"] = arg2
 	return args, nil
 }
 
@@ -3757,9 +3889,16 @@ func (ec *executionContext) _Query_role(ctx context.Context, field graphql.Colle
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_role_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Role(rctx)
+		return ec.resolvers.Query().Role(rctx, args["id"].(*string), args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3788,9 +3927,16 @@ func (ec *executionContext) _Query_user(ctx context.Context, field graphql.Colle
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_user_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().User(rctx)
+		return ec.resolvers.Query().User(rctx, args["id"].(*string), args["slug"].(*string), args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3819,9 +3965,16 @@ func (ec *executionContext) _Query_tag(ctx context.Context, field graphql.Collec
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_tag_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Tag(rctx)
+		return ec.resolvers.Query().Tag(rctx, args["id"].(*string), args["slug"].(*string), args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3850,9 +4003,16 @@ func (ec *executionContext) _Query_post(ctx context.Context, field graphql.Colle
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_post_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().Post(rctx)
+		return ec.resolvers.Query().Post(rctx, args["id"].(*string), args["slug"].(*string), args["name"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

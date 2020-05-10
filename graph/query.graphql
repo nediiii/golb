@@ -5,13 +5,13 @@
 type Query {
   setting(id: ID, key: String): Setting
 
-  role: Role
+  role(id: ID, name: String): Role
 
-  user: User
+  user(id: ID, slug: String, name: String): User
 
-  tag: Tag
+  tag(id: ID, slug: String, name: String): Tag
 
-  post: Post
+  post(id: ID, slug: String, name: String): Post
 
   # Lists
 

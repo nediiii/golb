@@ -17,12 +17,11 @@ type Role struct {
 	gorm.Model  `gorm:"embedded"`
 	Users       []*User   `gorm:"many2many:user_roles"`
 	UUID        uuid.UUID `gorm:"type:uuid;unique_index"`
-	Name        string    `gorm:"unique;not null"`
+	Name        string    `gorm:"unique_index;not null"`
 	Description string
 	CreateBy    uint
 	UpdateBy    uint
 }
-
 
 // GetID GetID
 func (v Role) GetID() interface{} {
@@ -38,7 +37,6 @@ func (v Role) GetCreateAt() interface{} {
 func (v Role) GetUpdateAt() interface{} {
 	return v.UpdatedAt
 }
-
 
 // BeforeCreate 初始化uuid
 func (role *Role) BeforeCreate(scope *gorm.Scope) error {

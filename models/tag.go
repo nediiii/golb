@@ -10,8 +10,8 @@ type Tag struct {
 	gorm.Model
 	Posts           []*Post   `gorm:"many2many:post_tags"`
 	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`
+	Slug            string    `gorm:"unique_index;not null"`
 	Name            string    `gorm:"unique_index;not null"`
-	Slug            string
 	Description     string
 	Image           string
 	Visibility      string
@@ -20,7 +20,6 @@ type Tag struct {
 	CreateBy        uint
 	UpdateBy        uint
 }
-
 
 // GetID GetID
 func (v Tag) GetID() interface{} {
@@ -36,7 +35,6 @@ func (v Tag) GetCreateAt() interface{} {
 func (v Tag) GetUpdateAt() interface{} {
 	return v.UpdatedAt
 }
-
 
 // BeforeCreate 初始化uuid
 func (tag *Tag) BeforeCreate(scope *gorm.Scope) error {
