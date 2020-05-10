@@ -12,10 +12,54 @@ import (
 	"golb/models"
 	"golb/services"
 	"io/ioutil"
+	"strconv"
+	"time"
 
 	"github.com/99designs/gqlgen/graphql"
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 )
+
+func (r *mutationResolver) Auth(ctx context.Context, username *string, password *string, token *string) (*model.Jwt, error) {
+	var jwtKey = []byte("golb.sys.jwt.key")
+
+	if token != nil {
+		parseToken, err := jwt.Parse(*token, func(tk *jwt.Token) (interface{}, error) {
+			// Don't forget to validate the alg is what you expect:
+			if _, ok := tk.Method.(*jwt.SigningMethodHMAC); !ok {
+				return nil, fmt.Errorf("Unexpected signing method: %v", tk.Header["alg"])
+			}
+
+			// jwtKey is a []byte containing your secret, e.g. []byte("my_secret_key")
+			return jwtKey, nil
+		})
+		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
+			fmt.Println(claims["exp"], claims["iss"])
+			fmt.Println("valid: ", parseToken.Valid)
+			// aud exp jti iat iss nbf sub
+			return nil, nil
+		}
+		return nil, err
+	} else if username != nil && password != nil {
+		claims := &jwt.StandardClaims{
+			Audience:  *username,                               // 受众
+			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(), // 失效时间
+			Id:        "1",                                     // 编号
+			IssuedAt:  time.Now().Unix(),                       // 签发时间
+			Issuer:    "golb.sys",                              // 签发人
+			NotBefore: time.Now().Unix(),                       // 生效时间
+			Subject:   "login",                                 // 主题
+		}
+
+		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+		str, err := token.SignedString(jwtKey)
+		if err != nil {
+			fmt.Print(err.Error())
+		}
+		return &model.Jwt{ExpireAt: strconv.FormatInt(claims.ExpiresAt, 10), Token: str}, nil
+	}
+	return nil, errors.New("Invalid input! You must send a token or (username and password)")
+}
 
 func (r *mutationResolver) SingleUpload(ctx context.Context, file graphql.Upload) (*model.File, error) {
 	content, err := ioutil.ReadAll(file.File)

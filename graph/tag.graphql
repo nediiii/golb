@@ -1,5 +1,7 @@
-type Tag {
+type Tag implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   slug: String!
   name: String!
   description: String
@@ -19,7 +21,7 @@ type TagsConnection {
 
 type TagsEdge {
   node: Tag
-  cursor: String!
+  cursor: ID!
 }
 type PostTagsConnection {
   pageInfo: PageInfo!
@@ -30,7 +32,7 @@ type PostTagsConnection {
 
 type PostTagsEdge {
   node: Tag
-  cursor: String!
+  cursor: ID!
 }
 
 input InputTag {

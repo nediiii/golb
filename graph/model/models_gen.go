@@ -8,9 +8,14 @@ import (
 	"github.com/99designs/gqlgen/graphql"
 )
 
+type Node interface {
+	IsNode()
+}
+
+// A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification.
 type Edges struct {
-	Node   *string `json:"node"`
-	Cursor *string `json:"cursor"`
+	Node   Node   `json:"node"`
+	Cursor string `json:"cursor"`
 }
 
 // The `File` type, represents the response of uploading a file.
@@ -51,6 +56,12 @@ type InputUser struct {
 	Email      *string `json:"email"`
 	Visibility *string `json:"visibility"`
 	Bio        *string `json:"bio"`
+}
+
+// The `JWT` type, represents the response of a logged-in user.
+type Jwt struct {
+	ExpireAt string `json:"expireAt"`
+	Token    string `json:"token"`
 }
 
 type PageInfo struct {

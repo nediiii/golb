@@ -7,7 +7,7 @@ import (
 	"context"
 	"golb/graph/generated"
 	"golb/graph/model"
-	"golb/middleware"
+	"golb/middlewares"
 	"golb/models"
 	"strconv"
 )
@@ -16,8 +16,16 @@ func (r *roleResolver) ID(ctx context.Context, obj *models.Role) (string, error)
 	return strconv.Itoa(int(obj.ID)), nil
 }
 
+func (r *roleResolver) UpdateAt(ctx context.Context, obj *models.Role) (string, error) {
+	return strconv.FormatInt(obj.UpdatedAt.Unix(), 10), nil
+}
+
+func (r *roleResolver) CreateAt(ctx context.Context, obj *models.Role) (string, error) {
+	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
+}
+
 func (r *roleResolver) UserConnection(ctx context.Context, obj *models.Role, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error) {
-	list, _ := middleware.GetDataloaderFromContext(ctx).RoleUsersLoader.Load(obj.ID)
+	list, _ := middlewares.GetDataloaderFromContext(ctx).RoleUsersLoader.Load(obj.ID)
 	v := &model.RoleUsersConnection{}
 	v.Users = list
 	return v, nil

@@ -23,6 +23,9 @@ type Role struct {
 	UpdateBy    uint
 }
 
+// IsNode IsNode
+func (v *Role) IsNode() {}
+
 // GetID GetID
 func (v Role) GetID() interface{} {
 	return v.ID

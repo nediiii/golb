@@ -2,7 +2,9 @@
 #
 # https://gqlgen.com/getting-started/
 
-type Query {
+type Query @hasLogin {
+  node(id: ID!): Node @deprecated(reason: "not implement yet")
+
   setting(id: ID, key: String): Setting
 
   role(id: ID, name: String): Role

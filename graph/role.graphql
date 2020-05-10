@@ -1,6 +1,8 @@
 "The `Role` type, represents the response of a role object."
-type Role {
+type Role implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   name: String
   description: String
   userConnection(
@@ -26,7 +28,7 @@ type RolesConnection {
 
 type RolesEdge {
   node: Role
-  cursor: String!
+  cursor: ID!
 }
 
 type UserRolesConnection {
@@ -38,5 +40,5 @@ type UserRolesConnection {
 
 type UserRolesEdge {
   node: Role
-  cursor: String!
+  cursor: ID!
 }

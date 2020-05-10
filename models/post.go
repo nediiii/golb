@@ -40,6 +40,9 @@ func (v *Post) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
+// IsNode IsNode
+func (v *Post) IsNode() {}
+
 // GetID GetID
 func (v Post) GetID() interface{} {
 	return v.ID

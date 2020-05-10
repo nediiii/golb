@@ -13,6 +13,10 @@ import (
 	"golb/services"
 )
 
+func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
 func (r *queryResolver) Setting(ctx context.Context, id *string, key *string) (*models.Setting, error) {
 	tx := services.DB
 	if id != nil {
@@ -120,15 +124,36 @@ func (r *queryResolver) AllRoles(ctx context.Context, first *int, last *int, aft
 }
 
 func (r *queryResolver) AllUsers(ctx context.Context, first *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var list []*models.User
+	services.DB.Model(&models.User{}).Find(&list)
+	v := &model.UsersConnection{}
+	v.Users = list
+	pageInfo := &model.PageInfo{}
+	pageInfo.HasNextPage = true
+	v.PageInfo = pageInfo
+	return v, nil
 }
 
 func (r *queryResolver) AllTags(ctx context.Context, first *int, last *int, after *string, before *string) (*model.TagsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var list []*models.Tag
+	services.DB.Model(&models.Tag{}).Find(&list)
+	v := &model.TagsConnection{}
+	v.Tags = list
+	pageInfo := &model.PageInfo{}
+	pageInfo.HasNextPage = true
+	v.PageInfo = pageInfo
+	return v, nil
 }
 
 func (r *queryResolver) AllPosts(ctx context.Context, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	var list []*models.Post
+	services.DB.Model(&models.Post{}).Find(&list)
+	v := &model.PostsConnection{}
+	v.Posts = list
+	pageInfo := &model.PageInfo{}
+	pageInfo.HasNextPage = true
+	v.PageInfo = pageInfo
+	return v, nil
 }
 
 // Query returns generated.QueryResolver implementation.

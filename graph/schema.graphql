@@ -3,3 +3,9 @@ scalar Upload
 
 "The `Date` scalar type represents a integer timestamp."
 scalar Date
+
+"The `@hasLogin` directive type represents it needs the user has login"
+directive @hasLogin on OBJECT | FIELD_DEFINITION
+
+"The `@hasRole` directive type represents it needs the user has a specific role"
+directive @hasRole(role: String!) on FIELD_DEFINITION

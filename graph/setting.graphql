@@ -1,6 +1,8 @@
 "The `Setting` type, represents the response of system setting item."
-type Setting {
+type Setting implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   key: String
   value: String
 }
@@ -20,5 +22,5 @@ type SettingsConnection {
 
 type SettingsEdge {
   node: Setting
-  cursor: String!
+  cursor: ID!
 }

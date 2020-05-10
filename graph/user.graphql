@@ -1,6 +1,8 @@
 "The `User` type, represents the response of a user object."
-type User {
+type User implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   name: String!
   slug: String!
   email: String
@@ -37,7 +39,7 @@ type UsersConnection {
 
 type UsersEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }
 
 type RoleUsersConnection {
@@ -49,7 +51,7 @@ type RoleUsersConnection {
 
 type RoleUsersEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }
 
 type PostAuthorsConnection {
@@ -61,5 +63,5 @@ type PostAuthorsConnection {
 
 type PostAuthorsEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }

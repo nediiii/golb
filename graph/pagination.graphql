@@ -1,11 +1,16 @@
 type PageInfo {
   hasPreviousPage: Boolean!
   hasNextPage: Boolean!
-  startCursor: String!
-  endCursor: String!
+  startCursor: ID!
+  endCursor: ID!
 }
 
+"A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification."
 type Edges {
-  node: String
-  cursor: String
+  node: Node
+  cursor: ID!
+}
+
+interface Node {
+  id: ID!
 }

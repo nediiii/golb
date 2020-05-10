@@ -5,10 +5,9 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"golb/graph/generated"
 	"golb/graph/model"
-	"golb/middleware"
+	"golb/middlewares"
 	"golb/models"
 	"strconv"
 )
@@ -17,15 +16,26 @@ func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error)
 	return strconv.Itoa(int(obj.ID)), nil
 }
 
+func (r *userResolver) UpdateAt(ctx context.Context, obj *models.User) (string, error) {
+	return strconv.FormatInt(obj.UpdatedAt.Unix(), 10), nil
+}
+
+func (r *userResolver) CreateAt(ctx context.Context, obj *models.User) (string, error) {
+	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
+}
+
 func (r *userResolver) RoleConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error) {
-	list, _ := middleware.GetDataloaderFromContext(ctx).UserRolesLoader.Load(obj.ID)
+	list, _ := middlewares.GetDataloaderFromContext(ctx).UserRolesLoader.Load(obj.ID)
 	v := &model.UserRolesConnection{}
 	v.Roles = list
 	return v, nil
 }
 
 func (r *userResolver) PostConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	list, _ := middlewares.GetDataloaderFromContext(ctx).UserPostsLoader.Load(obj.ID)
+	v := &model.UserPostsConnection{}
+	v.Posts = list
+	return v, nil
 }
 
 // User returns generated.UserResolver implementation.

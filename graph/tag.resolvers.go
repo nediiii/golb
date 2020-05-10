@@ -5,32 +5,33 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"golb/graph/generated"
 	"golb/graph/model"
+	"golb/middlewares"
 	"golb/models"
 	"strconv"
 )
 
 func (r *tagResolver) ID(ctx context.Context, obj *models.Tag) (string, error) {
-	return strconv.Itoa(int(obj.ID)), nil
+	return strconv.FormatUint(uint64(obj.ID), 10), nil
+}
+
+func (r *tagResolver) UpdateAt(ctx context.Context, obj *models.Tag) (string, error) {
+	return strconv.FormatInt(obj.UpdatedAt.Unix(), 10), nil
+}
+
+func (r *tagResolver) CreateAt(ctx context.Context, obj *models.Tag) (string, error) {
+	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
 }
 
 func (r *tagResolver) PostConnection(ctx context.Context, obj *models.Tag, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	list, _ := middlewares.GetDataloaderFromContext(ctx).TagPostLoader.Load(obj.ID)
+	v := &model.TagPostsConnection{}
+	v.Posts = list
+	return v, nil
 }
 
 // Tag returns generated.TagResolver implementation.
 func (r *Resolver) Tag() generated.TagResolver { return &tagResolver{r} }
 
 type tagResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *tagResolver) HasPosts(ctx context.Context, obj *models.Tag, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}

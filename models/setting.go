@@ -16,6 +16,9 @@ type Setting struct {
 	UpdateBy uint
 }
 
+// IsNode IsNode
+func (v *Setting) IsNode() {}
+
 // GetID GetID
 func (v Setting) GetID() interface{} {
 	return v.ID

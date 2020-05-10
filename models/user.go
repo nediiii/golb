@@ -33,6 +33,9 @@ type User struct {
 	UpdateBy        uint
 }
 
+// IsNode IsNode
+func (v *User) IsNode() {}
+
 // GetID GetID
 func (v User) GetID() interface{} {
 	return v.ID

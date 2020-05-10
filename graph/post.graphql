@@ -1,5 +1,7 @@
-type Post {
+type Post implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   title: String!
   html: String!
   markdown: String!
@@ -28,7 +30,7 @@ type PostsConnection {
 
 type PostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 type TagPostsConnection {
@@ -40,7 +42,7 @@ type TagPostsConnection {
 
 type TagPostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 type UserPostsConnection {
@@ -52,7 +54,7 @@ type UserPostsConnection {
 
 type UserPostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 input InputPost {

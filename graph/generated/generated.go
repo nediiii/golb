@@ -6,6 +6,7 @@ import (
 	"bytes"
 	"context"
 	"errors"
+	"fmt"
 	"golb/graph/model"
 	"golb/models"
 	"strconv"
@@ -46,6 +47,8 @@ type ResolverRoot interface {
 }
 
 type DirectiveRoot struct {
+	HasLogin func(ctx context.Context, obj interface{}, next graphql.Resolver) (res interface{}, err error)
+	HasRole  func(ctx context.Context, obj interface{}, next graphql.Resolver, role string) (res interface{}, err error)
 }
 
 type ComplexityRoot struct {
@@ -61,7 +64,13 @@ type ComplexityRoot struct {
 		Name        func(childComplexity int) int
 	}
 
+	Jwt struct {
+		ExpireAt func(childComplexity int) int
+		Token    func(childComplexity int) int
+	}
+
 	Mutation struct {
+		Auth                      func(childComplexity int, username *string, password *string, token *string) int
 		CreatePost                func(childComplexity int, slug string, title string, markdown string, html string, primaryAuthorID string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) int
 		CreateRole                func(childComplexity int, name string, description *string) int
 		CreateSetting             func(childComplexity int, key string, value string) int
@@ -92,6 +101,7 @@ type ComplexityRoot struct {
 
 	Post struct {
 		AuthorConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
+		CreateAt         func(childComplexity int) int
 		HTML             func(childComplexity int) int
 		ID               func(childComplexity int) int
 		Markdown         func(childComplexity int) int
@@ -99,6 +109,7 @@ type ComplexityRoot struct {
 		Slug             func(childComplexity int) int
 		TagConnection    func(childComplexity int, first *int, last *int, after *string, before *string) int
 		Title            func(childComplexity int) int
+		UpdateAt         func(childComplexity int) int
 	}
 
 	PostAuthorsConnection struct {
@@ -143,6 +154,7 @@ type ComplexityRoot struct {
 		AllSettings func(childComplexity int, first *int, last *int, after *string, before *string) int
 		AllTags     func(childComplexity int, first *int, last *int, after *string, before *string) int
 		AllUsers    func(childComplexity int, first *int, last *int, after *string, before *string) int
+		Node        func(childComplexity int, id string) int
 		Post        func(childComplexity int, id *string, slug *string, name *string) int
 		Role        func(childComplexity int, id *string, name *string) int
 		Setting     func(childComplexity int, id *string, key *string) int
@@ -151,9 +163,11 @@ type ComplexityRoot struct {
 	}
 
 	Role struct {
+		CreateAt       func(childComplexity int) int
 		Description    func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
+		UpdateAt       func(childComplexity int) int
 		UserConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
 	}
 
@@ -182,9 +196,11 @@ type ComplexityRoot struct {
 	}
 
 	Setting struct {
-		ID    func(childComplexity int) int
-		Key   func(childComplexity int) int
-		Value func(childComplexity int) int
+		CreateAt func(childComplexity int) int
+		ID       func(childComplexity int) int
+		Key      func(childComplexity int) int
+		UpdateAt func(childComplexity int) int
+		Value    func(childComplexity int) int
 	}
 
 	SettingsConnection struct {
@@ -200,11 +216,13 @@ type ComplexityRoot struct {
 	}
 
 	Tag struct {
+		CreateAt       func(childComplexity int) int
 		Description    func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		PostConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
 		Slug           func(childComplexity int) int
+		UpdateAt       func(childComplexity int) int
 	}
 
 	TagPostsConnection struct {
@@ -233,12 +251,14 @@ type ComplexityRoot struct {
 
 	User struct {
 		Bio            func(childComplexity int) int
+		CreateAt       func(childComplexity int) int
 		Email          func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		PostConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
 		RoleConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
 		Slug           func(childComplexity int) int
+		UpdateAt       func(childComplexity int) int
 		Visibility     func(childComplexity int) int
 	}
 
@@ -280,6 +300,7 @@ type ComplexityRoot struct {
 }
 
 type MutationResolver interface {
+	Auth(ctx context.Context, username *string, password *string, token *string) (*model.Jwt, error)
 	SingleUpload(ctx context.Context, file graphql.Upload) (*model.File, error)
 	SingleUploadWithPayload(ctx context.Context, req model.UploadFile) (*model.File, error)
 	MultipleUpload(ctx context.Context, files []*graphql.Upload) ([]*model.File, error)
@@ -302,11 +323,14 @@ type MutationResolver interface {
 }
 type PostResolver interface {
 	ID(ctx context.Context, obj *models.Post) (string, error)
+	UpdateAt(ctx context.Context, obj *models.Post) (string, error)
+	CreateAt(ctx context.Context, obj *models.Post) (string, error)
 
 	TagConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error)
 	AuthorConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error)
 }
 type QueryResolver interface {
+	Node(ctx context.Context, id string) (model.Node, error)
 	Setting(ctx context.Context, id *string, key *string) (*models.Setting, error)
 	Role(ctx context.Context, id *string, name *string) (*models.Role, error)
 	User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error)
@@ -320,19 +344,27 @@ type QueryResolver interface {
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *models.Role) (string, error)
+	UpdateAt(ctx context.Context, obj *models.Role) (string, error)
+	CreateAt(ctx context.Context, obj *models.Role) (string, error)
 
 	UserConnection(ctx context.Context, obj *models.Role, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error)
 }
 type SettingResolver interface {
 	ID(ctx context.Context, obj *models.Setting) (string, error)
+	UpdateAt(ctx context.Context, obj *models.Setting) (string, error)
+	CreateAt(ctx context.Context, obj *models.Setting) (string, error)
 }
 type TagResolver interface {
 	ID(ctx context.Context, obj *models.Tag) (string, error)
+	UpdateAt(ctx context.Context, obj *models.Tag) (string, error)
+	CreateAt(ctx context.Context, obj *models.Tag) (string, error)
 
 	PostConnection(ctx context.Context, obj *models.Tag, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *models.User) (string, error)
+	UpdateAt(ctx context.Context, obj *models.User) (string, error)
+	CreateAt(ctx context.Context, obj *models.User) (string, error)
 
 	RoleConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error)
 	PostConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error)
@@ -394,6 +426,32 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.File.Name(childComplexity), true
+
+	case "JWT.expireAt":
+		if e.complexity.Jwt.ExpireAt == nil {
+			break
+		}
+
+		return e.complexity.Jwt.ExpireAt(childComplexity), true
+
+	case "JWT.token":
+		if e.complexity.Jwt.Token == nil {
+			break
+		}
+
+		return e.complexity.Jwt.Token(childComplexity), true
+
+	case "Mutation.auth":
+		if e.complexity.Mutation.Auth == nil {
+			break
+		}
+
+		args, err := ec.field_Mutation_auth_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Mutation.Auth(childComplexity, args["username"].(*string), args["password"].(*string), args["token"].(*string)), true
 
 	case "Mutation.createPost":
 		if e.complexity.Mutation.CreatePost == nil {
@@ -663,6 +721,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.AuthorConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
+	case "Post.createAt":
+		if e.complexity.Post.CreateAt == nil {
+			break
+		}
+
+		return e.complexity.Post.CreateAt(childComplexity), true
+
 	case "Post.html":
 		if e.complexity.Post.HTML == nil {
 			break
@@ -716,6 +781,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Post.Title(childComplexity), true
+
+	case "Post.updateAt":
+		if e.complexity.Post.UpdateAt == nil {
+			break
+		}
+
+		return e.complexity.Post.UpdateAt(childComplexity), true
 
 	case "PostAuthorsConnection.authors":
 		if e.complexity.PostAuthorsConnection.Authors == nil {
@@ -903,6 +975,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.AllUsers(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
+	case "Query.node":
+		if e.complexity.Query.Node == nil {
+			break
+		}
+
+		args, err := ec.field_Query_node_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.Node(childComplexity, args["id"].(string)), true
+
 	case "Query.post":
 		if e.complexity.Query.Post == nil {
 			break
@@ -963,6 +1047,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Query.User(childComplexity, args["id"].(*string), args["slug"].(*string), args["name"].(*string)), true
 
+	case "Role.createAt":
+		if e.complexity.Role.CreateAt == nil {
+			break
+		}
+
+		return e.complexity.Role.CreateAt(childComplexity), true
+
 	case "Role.description":
 		if e.complexity.Role.Description == nil {
 			break
@@ -983,6 +1074,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Role.Name(childComplexity), true
+
+	case "Role.updateAt":
+		if e.complexity.Role.UpdateAt == nil {
+			break
+		}
+
+		return e.complexity.Role.UpdateAt(childComplexity), true
 
 	case "Role.userConnection":
 		if e.complexity.Role.UserConnection == nil {
@@ -1080,6 +1178,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.RolesEdge.Node(childComplexity), true
 
+	case "Setting.createAt":
+		if e.complexity.Setting.CreateAt == nil {
+			break
+		}
+
+		return e.complexity.Setting.CreateAt(childComplexity), true
+
 	case "Setting.id":
 		if e.complexity.Setting.ID == nil {
 			break
@@ -1093,6 +1198,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Setting.Key(childComplexity), true
+
+	case "Setting.updateAt":
+		if e.complexity.Setting.UpdateAt == nil {
+			break
+		}
+
+		return e.complexity.Setting.UpdateAt(childComplexity), true
 
 	case "Setting.value":
 		if e.complexity.Setting.Value == nil {
@@ -1143,6 +1255,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SettingsEdge.Node(childComplexity), true
 
+	case "Tag.createAt":
+		if e.complexity.Tag.CreateAt == nil {
+			break
+		}
+
+		return e.complexity.Tag.CreateAt(childComplexity), true
+
 	case "Tag.description":
 		if e.complexity.Tag.Description == nil {
 			break
@@ -1182,6 +1301,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Tag.Slug(childComplexity), true
+
+	case "Tag.updateAt":
+		if e.complexity.Tag.UpdateAt == nil {
+			break
+		}
+
+		return e.complexity.Tag.UpdateAt(childComplexity), true
 
 	case "TagPostsConnection.edges":
 		if e.complexity.TagPostsConnection.Edges == nil {
@@ -1274,6 +1400,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.User.Bio(childComplexity), true
 
+	case "User.createAt":
+		if e.complexity.User.CreateAt == nil {
+			break
+		}
+
+		return e.complexity.User.CreateAt(childComplexity), true
+
 	case "User.email":
 		if e.complexity.User.Email == nil {
 			break
@@ -1325,6 +1458,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.User.Slug(childComplexity), true
+
+	case "User.updateAt":
+		if e.complexity.User.UpdateAt == nil {
+			break
+		}
+
+		return e.complexity.User.UpdateAt(childComplexity), true
 
 	case "User.visibility":
 		if e.complexity.User.Visibility == nil {
@@ -1537,7 +1677,17 @@ input UploadFile {
   file: Upload!
 }
 `, BuiltIn: false},
+	&ast.Source{Name: "graph/login.graphql", Input: `"The ` + "`" + `JWT` + "`" + ` type, represents the response of a logged-in user."
+type JWT {
+  expireAt: Date!
+  token: String!
+}
+`, BuiltIn: false},
 	&ast.Source{Name: "graph/mutation.graphql", Input: `type Mutation {
+  # auth
+  "传入username和password获取token,或者传入token来刷新token"
+  auth(username: String, password: String, token: String): JWT!
+
   # file
   singleUpload(file: Upload!): File!
   singleUploadWithPayload(req: UploadFile!): File!
@@ -1546,8 +1696,10 @@ input UploadFile {
 
   # setting
   createSetting(key: String!, value: String!): Setting!
-  deleteSetting(id: ID!): Boolean!
-  updateSetting(id: ID!, key: String!, value: String!): Setting!
+    @hasLogin
+    @hasRole(role: "aRole")
+  deleteSetting(id: ID!): Boolean! @hasLogin
+  updateSetting(id: ID!, key: String!, value: String!): Setting! @hasLogin
   # role
   createRole(name: String!, description: String): Role!
   deleteRole(id: ID!): Boolean!
@@ -1559,9 +1711,10 @@ input UploadFile {
   updateUser(id: ID!, slug: String, name: String, password: String): User!
 
   # tag
-  createTag(slug: String!, name: String!, description: String): Tag!
-  deleteTag(id: ID!): Boolean!
+  createTag(slug: String!, name: String!, description: String): Tag! @hasLogin
+  deleteTag(id: ID!): Boolean! @hasLogin
   updateTag(id: ID!, slug: String, name: String, description: String): Tag!
+    @hasLogin
 
   # post
   createPost(
@@ -1603,17 +1756,24 @@ input UploadFile {
 	&ast.Source{Name: "graph/pagination.graphql", Input: `type PageInfo {
   hasPreviousPage: Boolean!
   hasNextPage: Boolean!
-  startCursor: String!
-  endCursor: String!
+  startCursor: ID!
+  endCursor: ID!
 }
 
+"A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification."
 type Edges {
-  node: String
-  cursor: String
+  node: Node
+  cursor: ID!
+}
+
+interface Node {
+  id: ID!
 }
 `, BuiltIn: false},
-	&ast.Source{Name: "graph/post.graphql", Input: `type Post {
+	&ast.Source{Name: "graph/post.graphql", Input: `type Post implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   title: String!
   html: String!
   markdown: String!
@@ -1642,7 +1802,7 @@ type PostsConnection {
 
 type PostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 type TagPostsConnection {
@@ -1654,7 +1814,7 @@ type TagPostsConnection {
 
 type TagPostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 type UserPostsConnection {
@@ -1666,7 +1826,7 @@ type UserPostsConnection {
 
 type UserPostsEdge {
   node: Post
-  cursor: String!
+  cursor: ID!
 }
 
 input InputPost {
@@ -1680,7 +1840,9 @@ input InputPost {
 #
 # https://gqlgen.com/getting-started/
 
-type Query {
+type Query @hasLogin {
+  node(id: ID!): Node @deprecated(reason: "not implement yet")
+
   setting(id: ID, key: String): Setting
 
   role(id: ID, name: String): Role
@@ -1725,8 +1887,10 @@ type Query {
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/role.graphql", Input: `"The ` + "`" + `Role` + "`" + ` type, represents the response of a role object."
-type Role {
+type Role implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   name: String
   description: String
   userConnection(
@@ -1752,7 +1916,7 @@ type RolesConnection {
 
 type RolesEdge {
   node: Role
-  cursor: String!
+  cursor: ID!
 }
 
 type UserRolesConnection {
@@ -1764,7 +1928,7 @@ type UserRolesConnection {
 
 type UserRolesEdge {
   node: Role
-  cursor: String!
+  cursor: ID!
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/schema.graphql", Input: `"The ` + "`" + `Upload` + "`" + ` scalar type represents a multipart file upload."
@@ -1772,10 +1936,18 @@ scalar Upload
 
 "The ` + "`" + `Date` + "`" + ` scalar type represents a integer timestamp."
 scalar Date
+
+"The ` + "`" + `@hasLogin` + "`" + ` directive type represents it needs the user has login"
+directive @hasLogin on OBJECT | FIELD_DEFINITION
+
+"The ` + "`" + `@hasRole` + "`" + ` directive type represents it needs the user has a specific role"
+directive @hasRole(role: String!) on FIELD_DEFINITION
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/setting.graphql", Input: `"The ` + "`" + `Setting` + "`" + ` type, represents the response of system setting item."
-type Setting {
+type Setting implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   key: String
   value: String
 }
@@ -1795,11 +1967,13 @@ type SettingsConnection {
 
 type SettingsEdge {
   node: Setting
-  cursor: String!
+  cursor: ID!
 }
 `, BuiltIn: false},
-	&ast.Source{Name: "graph/tag.graphql", Input: `type Tag {
+	&ast.Source{Name: "graph/tag.graphql", Input: `type Tag implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   slug: String!
   name: String!
   description: String
@@ -1819,7 +1993,7 @@ type TagsConnection {
 
 type TagsEdge {
   node: Tag
-  cursor: String!
+  cursor: ID!
 }
 type PostTagsConnection {
   pageInfo: PageInfo!
@@ -1830,7 +2004,7 @@ type PostTagsConnection {
 
 type PostTagsEdge {
   node: Tag
-  cursor: String!
+  cursor: ID!
 }
 
 input InputTag {
@@ -1839,8 +2013,10 @@ input InputTag {
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/user.graphql", Input: `"The ` + "`" + `User` + "`" + ` type, represents the response of a user object."
-type User {
+type User implements Node {
   id: ID!
+  updateAt: Date!
+  createAt: Date!
   name: String!
   slug: String!
   email: String
@@ -1877,7 +2053,7 @@ type UsersConnection {
 
 type UsersEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }
 
 type RoleUsersConnection {
@@ -1889,7 +2065,7 @@ type RoleUsersConnection {
 
 type RoleUsersEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }
 
 type PostAuthorsConnection {
@@ -1901,7 +2077,7 @@ type PostAuthorsConnection {
 
 type PostAuthorsEdge {
   node: User
-  cursor: String!
+  cursor: ID!
 }
 `, BuiltIn: false},
 }
@@ -1910,6 +2086,50 @@ var parsedSchema = gqlparser.MustLoadSchema(sources...)
 // endregion ************************** generated!.gotpl **************************
 
 // region    ***************************** args.gotpl *****************************
+
+func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["role"]; ok {
+		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Mutation_auth_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *string
+	if tmp, ok := rawArgs["username"]; ok {
+		arg0, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["username"] = arg0
+	var arg1 *string
+	if tmp, ok := rawArgs["password"]; ok {
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["password"] = arg1
+	var arg2 *string
+	if tmp, ok := rawArgs["token"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["token"] = arg2
+	return args, nil
+}
 
 func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
@@ -2801,6 +3021,20 @@ func (ec *executionContext) field_Query_allUsers_args(ctx context.Context, rawAr
 	return args, nil
 }
 
+func (ec *executionContext) field_Query_node_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["id"] = arg0
+	return args, nil
+}
+
 func (ec *executionContext) field_Query_post_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
@@ -3149,9 +3383,9 @@ func (ec *executionContext) _Edges_node(ctx context.Context, field graphql.Colle
 	if resTmp == nil {
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(model.Node)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalONode2golbᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Edges_cursor(ctx context.Context, field graphql.CollectedField, obj *model.Edges) (ret graphql.Marshaler) {
@@ -3178,11 +3412,14 @@ func (ec *executionContext) _Edges_cursor(ctx context.Context, field graphql.Col
 		return graphql.Null
 	}
 	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
 		return graphql.Null
 	}
-	res := resTmp.(*string)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalOString2ᚖstring(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _File_id(ctx context.Context, field graphql.CollectedField, obj *model.File) (ret graphql.Marshaler) {
@@ -3319,6 +3556,115 @@ func (ec *executionContext) _File_contentType(ctx context.Context, field graphql
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JWT_expireAt(ctx context.Context, field graphql.CollectedField, obj *model.Jwt) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "JWT",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.ExpireAt, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _JWT_token(ctx context.Context, field graphql.CollectedField, obj *model.Jwt) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "JWT",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Token, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Mutation_auth(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Mutation",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Mutation_auth_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().Auth(rctx, args["username"].(*string), args["password"].(*string), args["token"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(*model.Jwt)
+	fc.Result = res
+	return ec.marshalNJWT2ᚖgolbᚋgraphᚋmodelᚐJwt(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_singleUpload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -3508,8 +3854,38 @@ func (ec *executionContext) _Mutation_createSetting(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateSetting(rctx, args["key"].(string), args["value"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateSetting(rctx, args["key"].(string), args["value"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+		directive2 := func(ctx context.Context) (interface{}, error) {
+			role, err := ec.unmarshalNString2string(ctx, "aRole")
+			if err != nil {
+				return nil, err
+			}
+			if ec.directives.HasRole == nil {
+				return nil, errors.New("directive hasRole is not implemented")
+			}
+			return ec.directives.HasRole(ctx, nil, directive1, role)
+		}
+
+		tmp, err := directive2(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Setting); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Setting`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3549,8 +3925,28 @@ func (ec *executionContext) _Mutation_deleteSetting(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteSetting(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteSetting(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3590,8 +3986,28 @@ func (ec *executionContext) _Mutation_updateSetting(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateSetting(rctx, args["id"].(string), args["key"].(string), args["value"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateSetting(rctx, args["id"].(string), args["key"].(string), args["value"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Setting); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Setting`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3877,8 +4293,28 @@ func (ec *executionContext) _Mutation_createTag(ctx context.Context, field graph
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateTag(rctx, args["slug"].(string), args["name"].(string), args["description"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateTag(rctx, args["slug"].(string), args["name"].(string), args["description"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Tag); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Tag`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3918,8 +4354,28 @@ func (ec *executionContext) _Mutation_deleteTag(ctx context.Context, field graph
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteTag(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteTag(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3959,8 +4415,28 @@ func (ec *executionContext) _Mutation_updateTag(ctx context.Context, field graph
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateTag(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["description"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateTag(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["description"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Tag); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Tag`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4199,7 +4675,7 @@ func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field gra
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
@@ -4233,7 +4709,7 @@ func (ec *executionContext) _PageInfo_endCursor(ctx context.Context, field graph
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Post_id(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
@@ -4268,6 +4744,74 @@ func (ec *executionContext) _Post_id(ctx context.Context, field graphql.Collecte
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_updateAt(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Post().UpdateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_createAt(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Post().CreateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Post_title(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
@@ -4705,7 +5249,7 @@ func (ec *executionContext) _PostAuthorsEdge_cursor(ctx context.Context, field g
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostTagsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.PostTagsConnection) (ret graphql.Marshaler) {
@@ -4900,7 +5444,7 @@ func (ec *executionContext) _PostTagsEdge_cursor(ctx context.Context, field grap
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.PostsConnection) (ret graphql.Marshaler) {
@@ -5095,7 +5639,45 @@ func (ec *executionContext) _PostsEdge_cursor(ctx context.Context, field graphql
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Query_node(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_node_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().Node(rctx, args["id"].(string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(model.Node)
+	fc.Result = res
+	return ec.marshalONode2golbᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Query_setting(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5581,6 +6163,74 @@ func (ec *executionContext) _Role_id(ctx context.Context, field graphql.Collecte
 	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Role_updateAt(ctx context.Context, field graphql.CollectedField, obj *models.Role) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Role",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Role().UpdateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Role_createAt(ctx context.Context, field graphql.CollectedField, obj *models.Role) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Role",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Role().CreateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Role_name(ctx context.Context, field graphql.CollectedField, obj *models.Role) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5873,7 +6523,7 @@ func (ec *executionContext) _RoleUsersEdge_cursor(ctx context.Context, field gra
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RolesConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.RolesConnection) (ret graphql.Marshaler) {
@@ -6068,7 +6718,7 @@ func (ec *executionContext) _RolesEdge_cursor(ctx context.Context, field graphql
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Setting_id(ctx context.Context, field graphql.CollectedField, obj *models.Setting) (ret graphql.Marshaler) {
@@ -6103,6 +6753,74 @@ func (ec *executionContext) _Setting_id(ctx context.Context, field graphql.Colle
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Setting_updateAt(ctx context.Context, field graphql.CollectedField, obj *models.Setting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Setting",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Setting().UpdateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Setting_createAt(ctx context.Context, field graphql.CollectedField, obj *models.Setting) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Setting",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Setting().CreateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Setting_key(ctx context.Context, field graphql.CollectedField, obj *models.Setting) (ret graphql.Marshaler) {
@@ -6359,7 +7077,7 @@ func (ec *executionContext) _SettingsEdge_cursor(ctx context.Context, field grap
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
@@ -6394,6 +7112,74 @@ func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.Collected
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Tag_updateAt(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Tag",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tag().UpdateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Tag_createAt(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Tag",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Tag().CreateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_slug(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
@@ -6725,7 +7511,7 @@ func (ec *executionContext) _TagPostsEdge_cursor(ctx context.Context, field grap
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.TagsConnection) (ret graphql.Marshaler) {
@@ -6920,7 +7706,7 @@ func (ec *executionContext) _TagsEdge_cursor(ctx context.Context, field graphql.
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_id(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -6955,6 +7741,74 @@ func (ec *executionContext) _User_id(ctx context.Context, field graphql.Collecte
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_updateAt(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().UpdateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _User_createAt(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "User",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.User().CreateAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _User_name(ctx context.Context, field graphql.CollectedField, obj *models.User) (ret graphql.Marshaler) {
@@ -7386,7 +8240,7 @@ func (ec *executionContext) _UserPostsEdge_cursor(ctx context.Context, field gra
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserRolesConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.UserRolesConnection) (ret graphql.Marshaler) {
@@ -7581,7 +8435,7 @@ func (ec *executionContext) _UserRolesEdge_cursor(ctx context.Context, field gra
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UsersConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
@@ -7776,7 +8630,7 @@ func (ec *executionContext) _UsersEdge_cursor(ctx context.Context, field graphql
 	}
 	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNString2string(ctx, field.Selections, res)
+	return ec.marshalNID2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) ___Directive_name(ctx context.Context, field graphql.CollectedField, obj *introspection.Directive) (ret graphql.Marshaler) {
@@ -9006,6 +9860,40 @@ func (ec *executionContext) unmarshalInputUploadFile(ctx context.Context, obj in
 
 // region    ************************** interface.gotpl ***************************
 
+func (ec *executionContext) _Node(ctx context.Context, sel ast.SelectionSet, obj model.Node) graphql.Marshaler {
+	switch obj := (obj).(type) {
+	case nil:
+		return graphql.Null
+	case *models.Post:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Post(ctx, sel, obj)
+	case *models.Role:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Role(ctx, sel, obj)
+	case *models.Setting:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Setting(ctx, sel, obj)
+	case *models.Tag:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._Tag(ctx, sel, obj)
+	case *models.User:
+		if obj == nil {
+			return graphql.Null
+		}
+		return ec._User(ctx, sel, obj)
+	default:
+		panic(fmt.Errorf("unexpected type %T", obj))
+	}
+}
+
 // endregion ************************** interface.gotpl ***************************
 
 // region    **************************** object.gotpl ****************************
@@ -9025,6 +9913,9 @@ func (ec *executionContext) _Edges(ctx context.Context, sel ast.SelectionSet, ob
 			out.Values[i] = ec._Edges_node(ctx, field, obj)
 		case "cursor":
 			out.Values[i] = ec._Edges_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -9078,6 +9969,38 @@ func (ec *executionContext) _File(ctx context.Context, sel ast.SelectionSet, obj
 	return out
 }
 
+var jWTImplementors = []string{"JWT"}
+
+func (ec *executionContext) _JWT(ctx context.Context, sel ast.SelectionSet, obj *model.Jwt) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, jWTImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("JWT")
+		case "expireAt":
+			out.Values[i] = ec._JWT_expireAt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "token":
+			out.Values[i] = ec._JWT_token(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
 var mutationImplementors = []string{"Mutation"}
 
 func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet) graphql.Marshaler {
@@ -9093,6 +10016,11 @@ func (ec *executionContext) _Mutation(ctx context.Context, sel ast.SelectionSet)
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Mutation")
+		case "auth":
+			out.Values[i] = ec._Mutation_auth(ctx, field)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "singleUpload":
 			out.Values[i] = ec._Mutation_singleUpload(ctx, field)
 			if out.Values[i] == graphql.Null {
@@ -9241,7 +10169,7 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var postImplementors = []string{"Post"}
+var postImplementors = []string{"Post", "Node"}
 
 func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj *models.Post) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, postImplementors)
@@ -9261,6 +10189,34 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Post_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "updateAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_updateAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_createAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9531,6 +10487,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 		switch field.Name {
 		case "__typename":
 			out.Values[i] = graphql.MarshalString("Query")
+		case "node":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_node(ctx, field)
+				return res
+			})
 		case "setting":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -9656,7 +10623,7 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 	return out
 }
 
-var roleImplementors = []string{"Role"}
+var roleImplementors = []string{"Role", "Node"}
 
 func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj *models.Role) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, roleImplementors)
@@ -9676,6 +10643,34 @@ func (ec *executionContext) _Role(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._Role_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "updateAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Role_updateAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Role_createAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9837,7 +10832,7 @@ func (ec *executionContext) _RolesEdge(ctx context.Context, sel ast.SelectionSet
 	return out
 }
 
-var settingImplementors = []string{"Setting"}
+var settingImplementors = []string{"Setting", "Node"}
 
 func (ec *executionContext) _Setting(ctx context.Context, sel ast.SelectionSet, obj *models.Setting) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, settingImplementors)
@@ -9857,6 +10852,34 @@ func (ec *executionContext) _Setting(ctx context.Context, sel ast.SelectionSet, 
 					}
 				}()
 				res = ec._Setting_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "updateAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Setting_updateAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Setting_createAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -9942,7 +10965,7 @@ func (ec *executionContext) _SettingsEdge(ctx context.Context, sel ast.Selection
 	return out
 }
 
-var tagImplementors = []string{"Tag"}
+var tagImplementors = []string{"Tag", "Node"}
 
 func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj *models.Tag) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, tagImplementors)
@@ -9962,6 +10985,34 @@ func (ec *executionContext) _Tag(ctx context.Context, sel ast.SelectionSet, obj 
 					}
 				}()
 				res = ec._Tag_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "updateAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tag_updateAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Tag_createAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10131,7 +11182,7 @@ func (ec *executionContext) _TagsEdge(ctx context.Context, sel ast.SelectionSet,
 	return out
 }
 
-var userImplementors = []string{"User"}
+var userImplementors = []string{"User", "Node"}
 
 func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj *models.User) graphql.Marshaler {
 	fields := graphql.CollectFields(ec.OperationContext, sel, userImplementors)
@@ -10151,6 +11202,34 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 					}
 				}()
 				res = ec._User_id(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "updateAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_updateAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "createAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_createAt(ctx, field, obj)
 				if res == graphql.Null {
 					atomic.AddUint32(&invalids, 1)
 				}
@@ -10659,6 +11738,20 @@ func (ec *executionContext) marshalNBoolean2bool(ctx context.Context, sel ast.Se
 	return res
 }
 
+func (ec *executionContext) unmarshalNDate2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
+}
+
+func (ec *executionContext) marshalNDate2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
+}
+
 func (ec *executionContext) marshalNFile2golbᚋgraphᚋmodelᚐFile(ctx context.Context, sel ast.SelectionSet, v model.File) graphql.Marshaler {
 	return ec._File(ctx, sel, &v)
 }
@@ -10736,6 +11829,20 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 		}
 	}
 	return res
+}
+
+func (ec *executionContext) marshalNJWT2golbᚋgraphᚋmodelᚐJwt(ctx context.Context, sel ast.SelectionSet, v model.Jwt) graphql.Marshaler {
+	return ec._JWT(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalNJWT2ᚖgolbᚋgraphᚋmodelᚐJwt(ctx context.Context, sel ast.SelectionSet, v *model.Jwt) graphql.Marshaler {
+	if v == nil {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	return ec._JWT(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalNPageInfo2golbᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v model.PageInfo) graphql.Marshaler {
@@ -11431,6 +12538,13 @@ func (ec *executionContext) marshalOInt2ᚖint(ctx context.Context, sel ast.Sele
 		return graphql.Null
 	}
 	return ec.marshalOInt2int(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalONode2golbᚋgraphᚋmodelᚐNode(ctx context.Context, sel ast.SelectionSet, v model.Node) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._Node(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOPost2golbᚋmodelsᚐPost(ctx context.Context, sel ast.SelectionSet, v models.Post) graphql.Marshaler {

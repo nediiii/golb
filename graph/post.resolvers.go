@@ -5,9 +5,9 @@ package graph
 
 import (
 	"context"
-	"fmt"
 	"golb/graph/generated"
 	"golb/graph/model"
+	"golb/middlewares"
 	"golb/models"
 	"strconv"
 )
@@ -16,28 +16,29 @@ func (r *postResolver) ID(ctx context.Context, obj *models.Post) (string, error)
 	return strconv.Itoa(int(obj.ID)), nil
 }
 
+func (r *postResolver) UpdateAt(ctx context.Context, obj *models.Post) (string, error) {
+	return strconv.FormatInt(obj.UpdatedAt.Unix(), 10), nil
+}
+
+func (r *postResolver) CreateAt(ctx context.Context, obj *models.Post) (string, error) {
+	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
+}
+
 func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	list, _ := middlewares.GetDataloaderFromContext(ctx).PostTagsLoader.Load(obj.ID)
+	v := &model.PostTagsConnection{}
+	v.Tags = list
+	return v, nil
 }
 
 func (r *postResolver) AuthorConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	list, _ := middlewares.GetDataloaderFromContext(ctx).PostAuthorsLoader.Load(obj.ID)
+	v := &model.PostAuthorsConnection{}
+	v.Authors = list
+	return v, nil
 }
 
 // Post returns generated.PostResolver implementation.
 func (r *Resolver) Post() generated.PostResolver { return &postResolver{r} }
 
 type postResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *postResolver) HasTags(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-func (r *postResolver) HasAuthors(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error) {
-	panic(fmt.Errorf("not implemented"))
-}

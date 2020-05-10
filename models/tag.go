@@ -21,6 +21,9 @@ type Tag struct {
 	UpdateBy        uint
 }
 
+// IsNode IsNode
+func (v *Tag) IsNode() {}
+
 // GetID GetID
 func (v Tag) GetID() interface{} {
 	return v.ID

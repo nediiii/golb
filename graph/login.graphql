@@ -1,0 +1,5 @@
+"The `JWT` type, represents the response of a logged-in user."
+type JWT {
+  expireAt: Date!
+  token: String!
+}
