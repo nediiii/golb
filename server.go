@@ -9,20 +9,22 @@ import (
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 
-	"golb/dataloader"
 	"golb/graph"
 	"golb/graph/generated"
+	"golb/middleware"
 )
 
 func main() {
 	r := gin.Default()
 	r.Use(cors.Default())
+	r.Use(middleware.WrapGinContextToContext())
+	r.Use(middleware.WrapDataloaderToContext())
 
 	r.Static("/statics", "./statics")
 
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
-	log.Println("[debug] visit http://0.0.0.0:8090")
+	log.Println("[info] visit http://0.0.0.0:8090")
 	r.Run(":8090")
 }
 
@@ -51,7 +53,7 @@ func graphqlHandler() gin.HandlerFunc {
 	})
 
 	return func(c *gin.Context) {
-		dataloader.Middleware(h).ServeHTTP(c.Writer, c.Request)
+		h.ServeHTTP(c.Writer, c.Request)
 	}
 }
 

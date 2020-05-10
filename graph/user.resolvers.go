@@ -6,9 +6,9 @@ package graph
 import (
 	"context"
 	"fmt"
-	"golb/dataloader"
 	"golb/graph/generated"
 	"golb/graph/model"
+	"golb/middleware"
 	"golb/models"
 	"strconv"
 )
@@ -18,7 +18,7 @@ func (r *userResolver) ID(ctx context.Context, obj *models.User) (string, error)
 }
 
 func (r *userResolver) RoleConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error) {
-	list, _ := dataloader.For(ctx).UserRolesLoader.Load(obj.ID)
+	list, _ := middleware.GetDataloaderFromContext(ctx).UserRolesLoader.Load(obj.ID)
 	v := &model.UserRolesConnection{}
 	v.Roles = list
 	return v, nil

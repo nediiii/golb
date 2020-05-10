@@ -1,9 +1,7 @@
 package dataloader
 
 import (
-	"context"
 	"fmt"
-	"net/http"
 	"time"
 
 	"golb/models"
@@ -12,24 +10,15 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-const loadersKey = ContextKey("dataloaders")
-
-// ContextKey ContextKey
-type ContextKey string
-
-// DataLoader DataLoader
-type DataLoader interface {
-}
-
-// Loaders Loaders
-type Loaders struct {
+// DataLoaders DataLoaders
+type DataLoaders struct {
 	RoleUsersLoader
 	UserRolesLoader
 }
 
-// loaders loaders
+// Loaders Loaders
 var (
-	loaders = &Loaders{
+	Loaders = &DataLoaders{
 		RoleUsersLoader: RoleUsersLoader{
 			maxBatch: 100,
 			wait:     1 * time.Millisecond,
@@ -58,17 +47,3 @@ var (
 		},
 	}
 )
-
-// Middleware Middleware
-func Middleware(h http.Handler) http.Handler {
-	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), loadersKey, loaders)
-		r = r.WithContext(ctx)
-		h.ServeHTTP(w, r)
-	})
-}
-
-// For For
-func For(ctx context.Context) *Loaders {
-	return ctx.Value(loadersKey).(*Loaders)
-}
