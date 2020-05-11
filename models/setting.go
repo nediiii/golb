@@ -19,23 +19,8 @@ type Setting struct {
 // IsNode IsNode
 func (v *Setting) IsNode() {}
 
-// GetID GetID
-func (v Setting) GetID() interface{} {
-	return v.ID
-}
-
-// GetCreateAt GetCreateAt
-func (v Setting) GetCreateAt() interface{} {
-	return v.CreatedAt
-}
-
-// GetUpdateAt GetUpdateAt
-func (v Setting) GetUpdateAt() interface{} {
-	return v.UpdatedAt
-}
-
 // BeforeCreate 初始化uuid
-func (setting *Setting) BeforeCreate(scope *gorm.Scope) error {
+func (v *Setting) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("UUID", uuid.New())
 	return nil
 }

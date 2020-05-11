@@ -7,6 +7,7 @@ import (
 	"golb/models"
 
 	"github.com/jinzhu/gorm"
+	"github.com/prometheus/common/log"
 
 	// postgres
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -48,26 +49,41 @@ func initTable() {
 func initData() {
 	// init system settings data
 	for _, s := range models.PreDefinedSettings {
-		DB.Where(models.Setting{Key: s.Key}).FirstOrCreate(&s)
+		err := DB.Where(models.Setting{Key: s.Key}).FirstOrCreate(&s).GetErrors()
+		for _, e := range err {
+			log.Fatal(e.Error())
+		}
 	}
 
 	// init roles data
 	for _, r := range models.PreDefinedRoles {
-		DB.Where(models.Role{Name: r.Name}).FirstOrCreate(&r)
+		err := DB.Where(models.Role{Name: r.Name}).FirstOrCreate(&r).GetErrors()
+		for _, e := range err {
+			log.Fatal(e.Error())
+		}
 	}
 
 	// init users data
 	for _, u := range models.PreDefinedUsers {
-		DB.Where(models.User{Name: u.Name}).FirstOrCreate(&u)
+		err := DB.Where(models.User{Name: u.Name}).FirstOrCreate(&u).GetErrors()
+		for _, e := range err {
+			log.Fatal(e.Error())
+		}
 	}
 
 	// init tags data
 	for _, t := range models.PreDefinedTags {
-		DB.Where(models.Tag{Name: t.Name}).FirstOrCreate(&t)
+		err := DB.Where(models.Tag{Name: t.Name}).FirstOrCreate(&t).GetErrors()
+		for _, e := range err {
+			log.Fatal(e.Error())
+		}
 	}
 
 	// init posts data
 	for _, p := range models.PreDefinedPosts {
-		DB.Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p)
+		err := DB.Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p).GetErrors()
+		for _, e := range err {
+			log.Fatal(e.Error())
+		}
 	}
 }

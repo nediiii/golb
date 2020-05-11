@@ -6,6 +6,7 @@ type Post implements Node {
   html: String!
   markdown: String!
   slug: String!
+  status: String!
   tagConnection(
     page: Int
     per_page: Int

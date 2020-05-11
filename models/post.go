@@ -43,16 +43,6 @@ func (v *Post) BeforeCreate(scope *gorm.Scope) error {
 // IsNode IsNode
 func (v *Post) IsNode() {}
 
-// GetID GetID
-func (v Post) GetID() interface{} {
-	return v.ID
-}
-
-// GetCreateAt GetCreateAt
-func (v Post) GetCreateAt() interface{} {
-	return v.CreatedAt
-}
-
 // GetUpdateAt GetUpdateAt
 func (v Post) GetUpdateAt() interface{} {
 	return v.UpdatedAt

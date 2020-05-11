@@ -11,6 +11,7 @@ require (
 	github.com/gin-gonic/gin v1.6.3
 	github.com/google/uuid v1.1.1
 	github.com/jinzhu/gorm v1.9.12
+	github.com/prometheus/common v0.4.0
 	github.com/spf13/viper v1.6.3
 	github.com/vektah/gqlparser/v2 v2.0.1
 )

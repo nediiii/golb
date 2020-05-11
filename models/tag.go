@@ -24,32 +24,17 @@ type Tag struct {
 // IsNode IsNode
 func (v *Tag) IsNode() {}
 
-// GetID GetID
-func (v Tag) GetID() interface{} {
-	return v.ID
-}
-
-// GetCreateAt GetCreateAt
-func (v Tag) GetCreateAt() interface{} {
-	return v.CreatedAt
-}
-
-// GetUpdateAt GetUpdateAt
-func (v Tag) GetUpdateAt() interface{} {
-	return v.UpdatedAt
-}
-
 // BeforeCreate 初始化uuid
-func (tag *Tag) BeforeCreate(scope *gorm.Scope) error {
+func (v *Tag) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("UUID", uuid.New())
 	return nil
 }
 
 // PreDefinedTags PreDefinedTags
 var PreDefinedTags = []*Tag{
-	{Name: "article", Description: "博客文章"},
-	{Name: "learn", Description: "学习笔记"},
-	{Name: "goweb", Description: "动态网站"},
-	{Name: "python", Description: "python"},
-	{Name: "javascript", Description: "javascript"},
+	{Name: "article", Slug: "article", Description: "博客文章"},
+	{Name: "learn", Slug: "learn", Description: "学习笔记"},
+	{Name: "goweb", Slug: "goweb", Description: "动态网站"},
+	{Name: "python", Slug: "python", Description: "python"},
+	{Name: "javascript", Slug: "javascript", Description: "javascript"},
 }

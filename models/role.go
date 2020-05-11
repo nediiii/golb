@@ -26,23 +26,8 @@ type Role struct {
 // IsNode IsNode
 func (v *Role) IsNode() {}
 
-// GetID GetID
-func (v Role) GetID() interface{} {
-	return v.ID
-}
-
-// GetCreateAt GetCreateAt
-func (v Role) GetCreateAt() interface{} {
-	return v.CreatedAt
-}
-
-// GetUpdateAt GetUpdateAt
-func (v Role) GetUpdateAt() interface{} {
-	return v.UpdatedAt
-}
-
 // BeforeCreate 初始化uuid
-func (role *Role) BeforeCreate(scope *gorm.Scope) error {
+func (v *Role) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("UUID", uuid.New())
 	return nil
 }

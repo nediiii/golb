@@ -36,29 +36,14 @@ type User struct {
 // IsNode IsNode
 func (v *User) IsNode() {}
 
-// GetID GetID
-func (v User) GetID() interface{} {
-	return v.ID
-}
-
-// GetCreateAt GetCreateAt
-func (v User) GetCreateAt() interface{} {
-	return v.CreatedAt
-}
-
-// GetUpdateAt GetUpdateAt
-func (v User) GetUpdateAt() interface{} {
-	return v.UpdatedAt
-}
-
 // BeforeCreate 初始化uuid
-func (user *User) BeforeCreate(scope *gorm.Scope) error {
+func (v *User) BeforeCreate(scope *gorm.Scope) error {
 	scope.SetColumn("UUID", uuid.New())
 	return nil
 }
 
 // PreDefinedUsers PreDefinedUsers
 var PreDefinedUsers = []*User{
-	{Name: "owner", Password: "root", Roles: PreDefinedRoles},
-	{Name: "admin", Password: "admin", Roles: PreDefinedRoles[1:]},
+	{Name: "owner", Slug: "owner", Password: "root", Roles: PreDefinedRoles},
+	{Name: "admin", Slug: "admin", Password: "admin", Roles: PreDefinedRoles[1:]},
 }
