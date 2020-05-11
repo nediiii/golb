@@ -104,6 +104,7 @@ func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name
 func (r *queryResolver) AllSettings(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.Setting{})
+	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
 
@@ -125,6 +126,7 @@ func (r *queryResolver) AllSettings(ctx context.Context, page *int, perPage *int
 func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.Role{})
+	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
 
@@ -146,6 +148,7 @@ func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, f
 func (r *queryResolver) AllUsers(ctx context.Context, first *int, page *int, perPage *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.User{})
+	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
 
@@ -167,6 +170,7 @@ func (r *queryResolver) AllUsers(ctx context.Context, first *int, page *int, per
 func (r *queryResolver) AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.Tag{})
+	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
 
@@ -188,6 +192,7 @@ func (r *queryResolver) AllTags(ctx context.Context, page *int, perPage *int, fi
 func (r *queryResolver) AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.Post{})
+	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
 

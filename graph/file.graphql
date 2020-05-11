@@ -1,5 +1,7 @@
 "The `File` type, represents the response of uploading a file."
 type File {
+  hash: String!
+  url: String!
   id: Int!
   name: String!
   content: String!

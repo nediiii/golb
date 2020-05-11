@@ -35,6 +35,8 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.User, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
+
 				v := make([][]*models.User, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.Role{Model: gorm.Model{ID: k}}).Related(&v[i], "Users")
@@ -47,6 +49,7 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.Role, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
 				v := make([][]*models.Role, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.User{Model: gorm.Model{ID: k}}).Related(&v[i], "Roles")
@@ -59,6 +62,7 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.Post, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
 				v := make([][]*models.Post, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.User{Model: gorm.Model{ID: k}}).Related(&v[i], "Posts")
@@ -71,6 +75,7 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.Tag, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
 				v := make([][]*models.Tag, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.Post{Model: gorm.Model{ID: k}}).Related(&v[i], "Tags")
@@ -83,6 +88,7 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.User, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
 				v := make([][]*models.User, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.Post{Model: gorm.Model{ID: k}}).Related(&v[i], "Authors")
@@ -95,6 +101,7 @@ var (
 			wait:     1 * time.Millisecond,
 			fetch: func(keys []uint) ([][]*models.Post, []error) {
 				tx := services.DB
+				tx = tx.Order("id asc")
 				v := make([][]*models.Post, len(keys))
 				for i, k := range keys {
 					tx.Model(&models.Tag{Model: gorm.Model{ID: k}}).Related(&v[i], "Posts")

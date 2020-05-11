@@ -20,6 +20,8 @@ type Edges struct {
 
 // The `File` type, represents the response of uploading a file.
 type File struct {
+	Hash        string `json:"hash"`
+	URL         string `json:"url"`
 	ID          int    `json:"id"`
 	Name        string `json:"name"`
 	Content     string `json:"content"`

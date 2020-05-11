@@ -5,6 +5,8 @@ package graph
 
 import (
 	"context"
+	"crypto/sha256"
+	"encoding/hex"
 	"errors"
 	"fmt"
 	"golb/graph/generated"
@@ -66,11 +68,18 @@ func (r *mutationResolver) SingleUpload(ctx context.Context, file graphql.Upload
 	if err != nil {
 		return nil, err
 	}
+	h := sha256.New()
+	h.Write(content)
+	timeStr := strconv.FormatInt(time.Now().Unix(), 10)
+	ioutil.WriteFile("statics/"+timeStr+".png", content, 0644)
+
 	// ioutil.WriteFile("statics/"+file.Filename, content, 0644)
 	return &model.File{
 		ID:      1,
 		Name:    file.Filename,
 		Content: string(content),
+		Hash:    hex.EncodeToString(h.Sum(nil)),
+		URL:     "http://localhost:8090/statics/" + timeStr + ".png",
 	}, nil
 }
 
