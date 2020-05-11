@@ -18,6 +18,8 @@ type Query @hasLogin {
   # Lists
 
   allSettings(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String
@@ -25,6 +27,8 @@ type Query @hasLogin {
   ): SettingsConnection
 
   allRoles(
+    page: Int
+    perPage: Int
     first: Int
     last: Int
     after: String
@@ -33,14 +37,25 @@ type Query @hasLogin {
 
   allUsers(
     first: Int
+    page: Int
+    perPage: Int
     last: Int
     after: String
     before: String
   ): UsersConnection
 
-  allTags(first: Int, last: Int, after: String, before: String): TagsConnection
+  allTags(
+    page: Int = 1
+    perPage: Int = 10
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): TagsConnection
 
   allPosts(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String

@@ -85,7 +85,7 @@ var (
 				tx := services.DB
 				v := make([][]*models.User, len(keys))
 				for i, k := range keys {
-					tx.Model(&models.Post{Model: gorm.Model{ID: k}}).Related(&v[i], "Users")
+					tx.Model(&models.Post{Model: gorm.Model{ID: k}}).Related(&v[i], "Authors")
 				}
 				return v, nil
 			},

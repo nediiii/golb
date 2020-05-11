@@ -1,8 +1,17 @@
 type PageInfo {
+  "The `hasPreviousPage` field represent whether previous page availiable"
   hasPreviousPage: Boolean!
+  "The `hasNextPage` field represent whether next page availiable"
   hasNextPage: Boolean!
-  startCursor: ID!
-  endCursor: ID!
+  "The `currentPage` field represent the current page number of record"
+  currentPage: Int!
+  "The `perPage` field represent the number of records per page"
+  perPage: Int!
+  "The `total` field represent the total record number"
+  total: Int!
+
+  startCursor: ID! @deprecated(reason: "not implement yet")
+  endCursor: ID! @deprecated(reason: "not implement yet")
 }
 
 "A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification."

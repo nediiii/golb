@@ -7,12 +7,16 @@ type Post implements Node {
   markdown: String!
   slug: String!
   tagConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): PostTagsConnection
   authorConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -23,8 +27,7 @@ type Post implements Node {
 
 type PostsConnection {
   pageInfo: PageInfo!
-  edges: [PostsEdge!]
-  totalCount: Int!
+  edges: [PostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 
@@ -35,8 +38,7 @@ type PostsEdge {
 
 type TagPostsConnection {
   pageInfo: PageInfo!
-  edges: [TagPostsEdge!]
-  totalCount: Int!
+  edges: [TagPostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 
@@ -47,8 +49,7 @@ type TagPostsEdge {
 
 type UserPostsConnection {
   pageInfo: PageInfo!
-  edges: [UserPostsEdge!]
-  totalCount: Int!
+  edges: [UserPostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 

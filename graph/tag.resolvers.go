@@ -24,7 +24,7 @@ func (r *tagResolver) CreateAt(ctx context.Context, obj *models.Tag) (string, er
 	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
 }
 
-func (r *tagResolver) PostConnection(ctx context.Context, obj *models.Tag, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error) {
+func (r *tagResolver) PostConnection(ctx context.Context, obj *models.Tag, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error) {
 	list, _ := middlewares.GetDataloaderFromContext(ctx).TagPostLoader.Load(obj.ID)
 	v := &model.TagPostsConnection{}
 	v.Posts = list

@@ -87,36 +87,38 @@ type ComplexityRoot struct {
 		SingleUploadWithPayload   func(childComplexity int, req model.UploadFile) int
 		UpdatePost                func(childComplexity int, id string, slug *string, title *string, markdown *string, html *string, primaryAuthorID *string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) int
 		UpdateRole                func(childComplexity int, id string, name *string, description *string) int
-		UpdateSetting             func(childComplexity int, id string, key string, value string) int
+		UpdateSetting             func(childComplexity int, id string, key *string, value *string) int
 		UpdateTag                 func(childComplexity int, id string, slug *string, name *string, description *string) int
 		UpdateUser                func(childComplexity int, id string, slug *string, name *string, password *string) int
 	}
 
 	PageInfo struct {
+		CurrentPage     func(childComplexity int) int
 		EndCursor       func(childComplexity int) int
 		HasNextPage     func(childComplexity int) int
 		HasPreviousPage func(childComplexity int) int
+		PerPage         func(childComplexity int) int
 		StartCursor     func(childComplexity int) int
+		Total           func(childComplexity int) int
 	}
 
 	Post struct {
-		AuthorConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
+		AuthorConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		CreateAt         func(childComplexity int) int
 		HTML             func(childComplexity int) int
 		ID               func(childComplexity int) int
 		Markdown         func(childComplexity int) int
 		PrimaryAuthor    func(childComplexity int) int
 		Slug             func(childComplexity int) int
-		TagConnection    func(childComplexity int, first *int, last *int, after *string, before *string) int
+		TagConnection    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		Title            func(childComplexity int) int
 		UpdateAt         func(childComplexity int) int
 	}
 
 	PostAuthorsConnection struct {
-		Authors    func(childComplexity int) int
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Authors  func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
 	}
 
 	PostAuthorsEdge struct {
@@ -125,10 +127,9 @@ type ComplexityRoot struct {
 	}
 
 	PostTagsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Tags       func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Tags     func(childComplexity int) int
 	}
 
 	PostTagsEdge struct {
@@ -137,10 +138,9 @@ type ComplexityRoot struct {
 	}
 
 	PostsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Posts      func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Posts    func(childComplexity int) int
 	}
 
 	PostsEdge struct {
@@ -149,11 +149,11 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AllPosts    func(childComplexity int, first *int, last *int, after *string, before *string) int
-		AllRoles    func(childComplexity int, first *int, last *int, after *string, before *string) int
-		AllSettings func(childComplexity int, first *int, last *int, after *string, before *string) int
-		AllTags     func(childComplexity int, first *int, last *int, after *string, before *string) int
-		AllUsers    func(childComplexity int, first *int, last *int, after *string, before *string) int
+		AllPosts    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllRoles    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllSettings func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllTags     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllUsers    func(childComplexity int, first *int, page *int, perPage *int, last *int, after *string, before *string) int
 		Node        func(childComplexity int, id string) int
 		Post        func(childComplexity int, id *string, slug *string, name *string) int
 		Role        func(childComplexity int, id *string, name *string) int
@@ -168,14 +168,13 @@ type ComplexityRoot struct {
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
 		UpdateAt       func(childComplexity int) int
-		UserConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
+		UserConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 	}
 
 	RoleUsersConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
-		Users      func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Users    func(childComplexity int) int
 	}
 
 	RoleUsersEdge struct {
@@ -184,10 +183,9 @@ type ComplexityRoot struct {
 	}
 
 	RolesConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Roles      func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Roles    func(childComplexity int) int
 	}
 
 	RolesEdge struct {
@@ -204,10 +202,9 @@ type ComplexityRoot struct {
 	}
 
 	SettingsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Settings   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Settings func(childComplexity int) int
 	}
 
 	SettingsEdge struct {
@@ -220,16 +217,15 @@ type ComplexityRoot struct {
 		Description    func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
-		PostConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
+		PostConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		Slug           func(childComplexity int) int
 		UpdateAt       func(childComplexity int) int
 	}
 
 	TagPostsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Posts      func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Posts    func(childComplexity int) int
 	}
 
 	TagPostsEdge struct {
@@ -238,10 +234,9 @@ type ComplexityRoot struct {
 	}
 
 	TagsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Tags       func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Tags     func(childComplexity int) int
 	}
 
 	TagsEdge struct {
@@ -255,18 +250,17 @@ type ComplexityRoot struct {
 		Email          func(childComplexity int) int
 		ID             func(childComplexity int) int
 		Name           func(childComplexity int) int
-		PostConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
-		RoleConnection func(childComplexity int, first *int, last *int, after *string, before *string) int
+		PostConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		RoleConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		Slug           func(childComplexity int) int
 		UpdateAt       func(childComplexity int) int
 		Visibility     func(childComplexity int) int
 	}
 
 	UserPostsConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Posts      func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Posts    func(childComplexity int) int
 	}
 
 	UserPostsEdge struct {
@@ -275,10 +269,9 @@ type ComplexityRoot struct {
 	}
 
 	UserRolesConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		Roles      func(childComplexity int) int
-		TotalCount func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Roles    func(childComplexity int) int
 	}
 
 	UserRolesEdge struct {
@@ -287,10 +280,9 @@ type ComplexityRoot struct {
 	}
 
 	UsersConnection struct {
-		Edges      func(childComplexity int) int
-		PageInfo   func(childComplexity int) int
-		TotalCount func(childComplexity int) int
-		Users      func(childComplexity int) int
+		Edges    func(childComplexity int) int
+		PageInfo func(childComplexity int) int
+		Users    func(childComplexity int) int
 	}
 
 	UsersEdge struct {
@@ -307,7 +299,7 @@ type MutationResolver interface {
 	MultipleUploadWithPayload(ctx context.Context, req []*model.UploadFile) ([]*model.File, error)
 	CreateSetting(ctx context.Context, key string, value string) (*models.Setting, error)
 	DeleteSetting(ctx context.Context, id string) (bool, error)
-	UpdateSetting(ctx context.Context, id string, key string, value string) (*models.Setting, error)
+	UpdateSetting(ctx context.Context, id string, key *string, value *string) (*models.Setting, error)
 	CreateRole(ctx context.Context, name string, description *string) (*models.Role, error)
 	DeleteRole(ctx context.Context, id string) (bool, error)
 	UpdateRole(ctx context.Context, id string, name *string, description *string) (*models.Role, error)
@@ -326,8 +318,8 @@ type PostResolver interface {
 	UpdateAt(ctx context.Context, obj *models.Post) (string, error)
 	CreateAt(ctx context.Context, obj *models.Post) (string, error)
 
-	TagConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error)
-	AuthorConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error)
+	TagConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error)
+	AuthorConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (model.Node, error)
@@ -336,18 +328,18 @@ type QueryResolver interface {
 	User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error)
 	Tag(ctx context.Context, id *string, slug *string, name *string) (*models.Tag, error)
 	Post(ctx context.Context, id *string, slug *string, name *string) (*models.Post, error)
-	AllSettings(ctx context.Context, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error)
-	AllRoles(ctx context.Context, first *int, last *int, after *string, before *string) (*model.RolesConnection, error)
-	AllUsers(ctx context.Context, first *int, last *int, after *string, before *string) (*model.UsersConnection, error)
-	AllTags(ctx context.Context, first *int, last *int, after *string, before *string) (*model.TagsConnection, error)
-	AllPosts(ctx context.Context, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
+	AllSettings(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error)
+	AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error)
+	AllUsers(ctx context.Context, first *int, page *int, perPage *int, last *int, after *string, before *string) (*model.UsersConnection, error)
+	AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error)
+	AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *models.Role) (string, error)
 	UpdateAt(ctx context.Context, obj *models.Role) (string, error)
 	CreateAt(ctx context.Context, obj *models.Role) (string, error)
 
-	UserConnection(ctx context.Context, obj *models.Role, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error)
+	UserConnection(ctx context.Context, obj *models.Role, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error)
 }
 type SettingResolver interface {
 	ID(ctx context.Context, obj *models.Setting) (string, error)
@@ -359,15 +351,15 @@ type TagResolver interface {
 	UpdateAt(ctx context.Context, obj *models.Tag) (string, error)
 	CreateAt(ctx context.Context, obj *models.Tag) (string, error)
 
-	PostConnection(ctx context.Context, obj *models.Tag, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error)
+	PostConnection(ctx context.Context, obj *models.Tag, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagPostsConnection, error)
 }
 type UserResolver interface {
 	ID(ctx context.Context, obj *models.User) (string, error)
 	UpdateAt(ctx context.Context, obj *models.User) (string, error)
 	CreateAt(ctx context.Context, obj *models.User) (string, error)
 
-	RoleConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error)
-	PostConnection(ctx context.Context, obj *models.User, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error)
+	RoleConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error)
+	PostConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error)
 }
 
 type executableSchema struct {
@@ -655,7 +647,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateSetting(childComplexity, args["id"].(string), args["key"].(string), args["value"].(string)), true
+		return e.complexity.Mutation.UpdateSetting(childComplexity, args["id"].(string), args["key"].(*string), args["value"].(*string)), true
 
 	case "Mutation.updateTag":
 		if e.complexity.Mutation.UpdateTag == nil {
@@ -681,6 +673,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["password"].(*string)), true
 
+	case "PageInfo.currentPage":
+		if e.complexity.PageInfo.CurrentPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.CurrentPage(childComplexity), true
+
 	case "PageInfo.endCursor":
 		if e.complexity.PageInfo.EndCursor == nil {
 			break
@@ -702,12 +701,26 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PageInfo.HasPreviousPage(childComplexity), true
 
+	case "PageInfo.perPage":
+		if e.complexity.PageInfo.PerPage == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.PerPage(childComplexity), true
+
 	case "PageInfo.startCursor":
 		if e.complexity.PageInfo.StartCursor == nil {
 			break
 		}
 
 		return e.complexity.PageInfo.StartCursor(childComplexity), true
+
+	case "PageInfo.total":
+		if e.complexity.PageInfo.Total == nil {
+			break
+		}
+
+		return e.complexity.PageInfo.Total(childComplexity), true
 
 	case "Post.authorConnection":
 		if e.complexity.Post.AuthorConnection == nil {
@@ -719,7 +732,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Post.AuthorConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Post.AuthorConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Post.createAt":
 		if e.complexity.Post.CreateAt == nil {
@@ -773,7 +786,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Post.TagConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Post.TagConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Post.title":
 		if e.complexity.Post.Title == nil {
@@ -810,13 +823,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PostAuthorsConnection.PageInfo(childComplexity), true
 
-	case "PostAuthorsConnection.totalCount":
-		if e.complexity.PostAuthorsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.PostAuthorsConnection.TotalCount(childComplexity), true
-
 	case "PostAuthorsEdge.cursor":
 		if e.complexity.PostAuthorsEdge.Cursor == nil {
 			break
@@ -851,13 +857,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostTagsConnection.Tags(childComplexity), true
-
-	case "PostTagsConnection.totalCount":
-		if e.complexity.PostTagsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.PostTagsConnection.TotalCount(childComplexity), true
 
 	case "PostTagsEdge.cursor":
 		if e.complexity.PostTagsEdge.Cursor == nil {
@@ -894,13 +893,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.PostsConnection.Posts(childComplexity), true
 
-	case "PostsConnection.totalCount":
-		if e.complexity.PostsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.PostsConnection.TotalCount(childComplexity), true
-
 	case "PostsEdge.cursor":
 		if e.complexity.PostsEdge.Cursor == nil {
 			break
@@ -925,7 +917,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllPosts(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllPosts(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.allRoles":
 		if e.complexity.Query.AllRoles == nil {
@@ -937,7 +929,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllRoles(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllRoles(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.allSettings":
 		if e.complexity.Query.AllSettings == nil {
@@ -949,7 +941,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllSettings(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllSettings(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.allTags":
 		if e.complexity.Query.AllTags == nil {
@@ -961,7 +953,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllTags(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllTags(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.allUsers":
 		if e.complexity.Query.AllUsers == nil {
@@ -973,7 +965,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllUsers(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllUsers(childComplexity, args["first"].(*int), args["page"].(*int), args["perPage"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -1092,7 +1084,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Role.UserConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Role.UserConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "RoleUsersConnection.edges":
 		if e.complexity.RoleUsersConnection.Edges == nil {
@@ -1107,13 +1099,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RoleUsersConnection.PageInfo(childComplexity), true
-
-	case "RoleUsersConnection.totalCount":
-		if e.complexity.RoleUsersConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.RoleUsersConnection.TotalCount(childComplexity), true
 
 	case "RoleUsersConnection.users":
 		if e.complexity.RoleUsersConnection.Users == nil {
@@ -1156,13 +1141,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.RolesConnection.Roles(childComplexity), true
-
-	case "RolesConnection.totalCount":
-		if e.complexity.RolesConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.RolesConnection.TotalCount(childComplexity), true
 
 	case "RolesEdge.cursor":
 		if e.complexity.RolesEdge.Cursor == nil {
@@ -1234,13 +1212,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.SettingsConnection.Settings(childComplexity), true
 
-	case "SettingsConnection.totalCount":
-		if e.complexity.SettingsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.SettingsConnection.TotalCount(childComplexity), true
-
 	case "SettingsEdge.cursor":
 		if e.complexity.SettingsEdge.Cursor == nil {
 			break
@@ -1293,7 +1264,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Tag.PostConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Tag.PostConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Tag.slug":
 		if e.complexity.Tag.Slug == nil {
@@ -1330,13 +1301,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.TagPostsConnection.Posts(childComplexity), true
 
-	case "TagPostsConnection.totalCount":
-		if e.complexity.TagPostsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.TagPostsConnection.TotalCount(childComplexity), true
-
 	case "TagPostsEdge.cursor":
 		if e.complexity.TagPostsEdge.Cursor == nil {
 			break
@@ -1371,13 +1335,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.TagsConnection.Tags(childComplexity), true
-
-	case "TagsConnection.totalCount":
-		if e.complexity.TagsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.TagsConnection.TotalCount(childComplexity), true
 
 	case "TagsEdge.cursor":
 		if e.complexity.TagsEdge.Cursor == nil {
@@ -1438,7 +1395,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.PostConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.User.PostConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "User.roleConnection":
 		if e.complexity.User.RoleConnection == nil {
@@ -1450,7 +1407,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.User.RoleConnection(childComplexity, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.User.RoleConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "User.slug":
 		if e.complexity.User.Slug == nil {
@@ -1494,13 +1451,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserPostsConnection.Posts(childComplexity), true
 
-	case "UserPostsConnection.totalCount":
-		if e.complexity.UserPostsConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.UserPostsConnection.TotalCount(childComplexity), true
-
 	case "UserPostsEdge.cursor":
 		if e.complexity.UserPostsEdge.Cursor == nil {
 			break
@@ -1536,13 +1486,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.UserRolesConnection.Roles(childComplexity), true
 
-	case "UserRolesConnection.totalCount":
-		if e.complexity.UserRolesConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.UserRolesConnection.TotalCount(childComplexity), true
-
 	case "UserRolesEdge.cursor":
 		if e.complexity.UserRolesEdge.Cursor == nil {
 			break
@@ -1570,13 +1513,6 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.UsersConnection.PageInfo(childComplexity), true
-
-	case "UsersConnection.totalCount":
-		if e.complexity.UsersConnection.TotalCount == nil {
-			break
-		}
-
-		return e.complexity.UsersConnection.TotalCount(childComplexity), true
 
 	case "UsersConnection.users":
 		if e.complexity.UsersConnection.Users == nil {
@@ -1699,7 +1635,7 @@ type JWT {
     @hasLogin
     @hasRole(role: "aRole")
   deleteSetting(id: ID!): Boolean! @hasLogin
-  updateSetting(id: ID!, key: String!, value: String!): Setting! @hasLogin
+  updateSetting(id: ID!, key: String, value: String): Setting! @hasLogin
   # role
   createRole(name: String!, description: String): Role!
   deleteRole(id: ID!): Boolean!
@@ -1754,10 +1690,19 @@ type JWT {
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/pagination.graphql", Input: `type PageInfo {
+  "The ` + "`" + `hasPreviousPage` + "`" + ` field represent whether previous page availiable"
   hasPreviousPage: Boolean!
+  "The ` + "`" + `hasNextPage` + "`" + ` field represent whether next page availiable"
   hasNextPage: Boolean!
-  startCursor: ID!
-  endCursor: ID!
+  "The ` + "`" + `currentPage` + "`" + ` field represent the current page number of record"
+  currentPage: Int!
+  "The ` + "`" + `perPage` + "`" + ` field represent the number of records per page"
+  perPage: Int!
+  "The ` + "`" + `total` + "`" + ` field represent the total record number"
+  total: Int!
+
+  startCursor: ID! @deprecated(reason: "not implement yet")
+  endCursor: ID! @deprecated(reason: "not implement yet")
 }
 
 "A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification."
@@ -1779,12 +1724,16 @@ interface Node {
   markdown: String!
   slug: String!
   tagConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): PostTagsConnection
   authorConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -1795,8 +1744,7 @@ interface Node {
 
 type PostsConnection {
   pageInfo: PageInfo!
-  edges: [PostsEdge!]
-  totalCount: Int!
+  edges: [PostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 
@@ -1807,8 +1755,7 @@ type PostsEdge {
 
 type TagPostsConnection {
   pageInfo: PageInfo!
-  edges: [TagPostsEdge!]
-  totalCount: Int!
+  edges: [TagPostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 
@@ -1819,8 +1766,7 @@ type TagPostsEdge {
 
 type UserPostsConnection {
   pageInfo: PageInfo!
-  edges: [UserPostsEdge!]
-  totalCount: Int!
+  edges: [UserPostsEdge!] @deprecated(reason: "not implement yet")
   posts: [Post!]
 }
 
@@ -1856,6 +1802,8 @@ type Query @hasLogin {
   # Lists
 
   allSettings(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String
@@ -1863,6 +1811,8 @@ type Query @hasLogin {
   ): SettingsConnection
 
   allRoles(
+    page: Int
+    perPage: Int
     first: Int
     last: Int
     after: String
@@ -1871,14 +1821,25 @@ type Query @hasLogin {
 
   allUsers(
     first: Int
+    page: Int
+    perPage: Int
     last: Int
     after: String
     before: String
   ): UsersConnection
 
-  allTags(first: Int, last: Int, after: String, before: String): TagsConnection
+  allTags(
+    page: Int = 1
+    perPage: Int = 10
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): TagsConnection
 
   allPosts(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String
@@ -1894,6 +1855,8 @@ type Role implements Node {
   name: String
   description: String
   userConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -1909,8 +1872,7 @@ input InputRole {
 
 type RolesConnection {
   pageInfo: PageInfo!
-  edges: [RolesEdge!]
-  totalCount: Int!
+  edges: [RolesEdge!] @deprecated(reason: "not implement yet")
   roles: [Role!]
 }
 
@@ -1921,8 +1883,7 @@ type RolesEdge {
 
 type UserRolesConnection {
   pageInfo: PageInfo!
-  edges: [UserRolesEdge!]
-  totalCount: Int!
+  edges: [UserRolesEdge!] @deprecated(reason: "not implement yet")
   roles: [Role!]
 }
 
@@ -1960,8 +1921,7 @@ input InputSetting {
 
 type SettingsConnection {
   pageInfo: PageInfo!
-  edges: [SettingsEdge!]
-  totalCount: Int!
+  edges: [SettingsEdge!] @deprecated(reason: "not implement yet")
   settings: [Setting!]
 }
 
@@ -1978,16 +1938,18 @@ type SettingsEdge {
   name: String!
   description: String
   postConnection(
+        page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): TagPostsConnection
 }
+
 type TagsConnection {
   pageInfo: PageInfo!
-  edges: [TagsEdge!]
-  totalCount: Int!
+  edges: [TagsEdge!] @deprecated(reason: "not implement yet")
   tags: [Tag!]
 }
 
@@ -1997,8 +1959,7 @@ type TagsEdge {
 }
 type PostTagsConnection {
   pageInfo: PageInfo!
-  edges: [PostTagsEdge!]
-  totalCount: Int!
+  edges: [PostTagsEdge!] @deprecated(reason: "not implement yet")
   tags: [Tag!]
 }
 
@@ -2023,12 +1984,16 @@ type User implements Node {
   visibility: String
   bio: String
   roleConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): UserRolesConnection
   postConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -2046,8 +2011,7 @@ input InputUser {
 
 type UsersConnection {
   pageInfo: PageInfo!
-  edges: [UsersEdge!]
-  totalCount: Int!
+  edges: [UsersEdge!] @deprecated(reason: "not implement yet")
   users: [User!]
 }
 
@@ -2058,8 +2022,7 @@ type UsersEdge {
 
 type RoleUsersConnection {
   pageInfo: PageInfo!
-  edges: [RoleUsersEdge!]
-  totalCount: Int!
+  edges: [RoleUsersEdge!] @deprecated(reason: "not implement yet")
   users: [User!]
 }
 
@@ -2070,8 +2033,7 @@ type RoleUsersEdge {
 
 type PostAuthorsConnection {
   pageInfo: PageInfo!
-  edges: [PostAuthorsEdge!]
-  totalCount: Int!
+  edges: [PostAuthorsEdge!] @deprecated(reason: "not implement yet")
   authors: [User!]
 }
 
@@ -2646,17 +2608,17 @@ func (ec *executionContext) field_Mutation_updateSetting_args(ctx context.Contex
 		}
 	}
 	args["id"] = arg0
-	var arg1 string
+	var arg1 *string
 	if tmp, ok := rawArgs["key"]; ok {
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
+		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["key"] = arg1
-	var arg2 string
+	var arg2 *string
 	if tmp, ok := rawArgs["value"]; ok {
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -2745,37 +2707,53 @@ func (ec *executionContext) field_Post_authorConnection_args(ctx context.Context
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2783,37 +2761,53 @@ func (ec *executionContext) field_Post_tagConnection_args(ctx context.Context, r
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2835,37 +2829,53 @@ func (ec *executionContext) field_Query_allPosts_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["perPage"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["perPage"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2873,37 +2883,53 @@ func (ec *executionContext) field_Query_allRoles_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["perPage"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["perPage"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2911,37 +2937,53 @@ func (ec *executionContext) field_Query_allSettings_args(ctx context.Context, ra
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["perPage"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["perPage"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2949,37 +2991,53 @@ func (ec *executionContext) field_Query_allTags_args(ctx context.Context, rawArg
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["perPage"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["perPage"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -2995,29 +3053,45 @@ func (ec *executionContext) field_Query_allUsers_args(ctx context.Context, rawAr
 	}
 	args["first"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["perPage"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["perPage"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -3173,37 +3247,53 @@ func (ec *executionContext) field_Role_userConnection_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -3211,37 +3301,53 @@ func (ec *executionContext) field_Tag_postConnection_args(ctx context.Context, r
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -3249,37 +3355,53 @@ func (ec *executionContext) field_User_postConnection_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -3287,37 +3409,53 @@ func (ec *executionContext) field_User_roleConnection_args(ctx context.Context, 
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["per_page"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg1
-	var arg2 *string
+	args["per_page"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
 	if tmp, ok := rawArgs["after"]; ok {
-		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg2
-	var arg3 *string
+	args["after"] = arg4
+	var arg5 *string
 	if tmp, ok := rawArgs["before"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg3
+	args["before"] = arg5
 	return args, nil
 }
 
@@ -3988,7 +4126,7 @@ func (ec *executionContext) _Mutation_updateSetting(ctx context.Context, field g
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateSetting(rctx, args["id"].(string), args["key"].(string), args["value"].(string))
+			return ec.resolvers.Mutation().UpdateSetting(rctx, args["id"].(string), args["key"].(*string), args["value"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasLogin == nil {
@@ -4644,6 +4782,108 @@ func (ec *executionContext) _PageInfo_hasNextPage(ctx context.Context, field gra
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _PageInfo_currentPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.CurrentPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_perPage(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PerPage, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _PageInfo_total(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "PageInfo",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Total, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _PageInfo_startCursor(ctx context.Context, field graphql.CollectedField, obj *model.PageInfo) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -4974,7 +5214,7 @@ func (ec *executionContext) _Post_tagConnection(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Post().TagConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Post().TagConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5012,7 +5252,7 @@ func (ec *executionContext) _Post_authorConnection(ctx context.Context, field gr
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Post().AuthorConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Post().AuthorConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5120,40 +5360,6 @@ func (ec *executionContext) _PostAuthorsConnection_edges(ctx context.Context, fi
 	res := resTmp.([]*model.PostAuthorsEdge)
 	fc.Result = res
 	return ec.marshalOPostAuthorsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐPostAuthorsEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PostAuthorsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PostAuthorsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "PostAuthorsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostAuthorsConnection_authors(ctx context.Context, field graphql.CollectedField, obj *model.PostAuthorsConnection) (ret graphql.Marshaler) {
@@ -5317,40 +5523,6 @@ func (ec *executionContext) _PostTagsConnection_edges(ctx context.Context, field
 	return ec.marshalOPostTagsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐPostTagsEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _PostTagsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PostTagsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "PostTagsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _PostTagsConnection_tags(ctx context.Context, field graphql.CollectedField, obj *model.PostTagsConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5510,40 +5682,6 @@ func (ec *executionContext) _PostsConnection_edges(ctx context.Context, field gr
 	res := resTmp.([]*model.PostsEdge)
 	fc.Result = res
 	return ec.marshalOPostsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐPostsEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _PostsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.PostsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "PostsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostsConnection_posts(ctx context.Context, field graphql.CollectedField, obj *model.PostsConnection) (ret graphql.Marshaler) {
@@ -5894,7 +6032,7 @@ func (ec *executionContext) _Query_allSettings(ctx context.Context, field graphq
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllSettings(rctx, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllSettings(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5932,7 +6070,7 @@ func (ec *executionContext) _Query_allRoles(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllRoles(rctx, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllRoles(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5970,7 +6108,7 @@ func (ec *executionContext) _Query_allUsers(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllUsers(rctx, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllUsers(rctx, args["first"].(*int), args["page"].(*int), args["perPage"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6008,7 +6146,7 @@ func (ec *executionContext) _Query_allTags(ctx context.Context, field graphql.Co
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllTags(rctx, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllTags(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6046,7 +6184,7 @@ func (ec *executionContext) _Query_allPosts(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllPosts(rctx, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllPosts(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6317,7 +6455,7 @@ func (ec *executionContext) _Role_userConnection(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Role().UserConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Role().UserConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6394,40 +6532,6 @@ func (ec *executionContext) _RoleUsersConnection_edges(ctx context.Context, fiel
 	res := resTmp.([]*model.RoleUsersEdge)
 	fc.Result = res
 	return ec.marshalORoleUsersEdge2ᚕᚖgolbᚋgraphᚋmodelᚐRoleUsersEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RoleUsersConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.RoleUsersConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "RoleUsersConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RoleUsersConnection_users(ctx context.Context, field graphql.CollectedField, obj *model.RoleUsersConnection) (ret graphql.Marshaler) {
@@ -6589,40 +6693,6 @@ func (ec *executionContext) _RolesConnection_edges(ctx context.Context, field gr
 	res := resTmp.([]*model.RolesEdge)
 	fc.Result = res
 	return ec.marshalORolesEdge2ᚕᚖgolbᚋgraphᚋmodelᚐRolesEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _RolesConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.RolesConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "RolesConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _RolesConnection_roles(ctx context.Context, field graphql.CollectedField, obj *model.RolesConnection) (ret graphql.Marshaler) {
@@ -6950,40 +7020,6 @@ func (ec *executionContext) _SettingsConnection_edges(ctx context.Context, field
 	return ec.marshalOSettingsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐSettingsEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _SettingsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.SettingsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "SettingsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _SettingsConnection_settings(ctx context.Context, field graphql.CollectedField, obj *model.SettingsConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7305,7 +7341,7 @@ func (ec *executionContext) _Tag_postConnection(ctx context.Context, field graph
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Tag().PostConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Tag().PostConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7382,40 +7418,6 @@ func (ec *executionContext) _TagPostsConnection_edges(ctx context.Context, field
 	res := resTmp.([]*model.TagPostsEdge)
 	fc.Result = res
 	return ec.marshalOTagPostsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐTagPostsEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TagPostsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.TagPostsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "TagPostsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagPostsConnection_posts(ctx context.Context, field graphql.CollectedField, obj *model.TagPostsConnection) (ret graphql.Marshaler) {
@@ -7577,40 +7579,6 @@ func (ec *executionContext) _TagsConnection_edges(ctx context.Context, field gra
 	res := resTmp.([]*model.TagsEdge)
 	fc.Result = res
 	return ec.marshalOTagsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐTagsEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _TagsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.TagsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "TagsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _TagsConnection_tags(ctx context.Context, field graphql.CollectedField, obj *model.TagsConnection) (ret graphql.Marshaler) {
@@ -7996,7 +7964,7 @@ func (ec *executionContext) _User_roleConnection(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().RoleConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.User().RoleConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8034,7 +8002,7 @@ func (ec *executionContext) _User_postConnection(ctx context.Context, field grap
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.User().PostConnection(rctx, obj, args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.User().PostConnection(rctx, obj, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -8111,40 +8079,6 @@ func (ec *executionContext) _UserPostsConnection_edges(ctx context.Context, fiel
 	res := resTmp.([]*model.UserPostsEdge)
 	fc.Result = res
 	return ec.marshalOUserPostsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐUserPostsEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UserPostsConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.UserPostsConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "UserPostsConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UserPostsConnection_posts(ctx context.Context, field graphql.CollectedField, obj *model.UserPostsConnection) (ret graphql.Marshaler) {
@@ -8308,40 +8242,6 @@ func (ec *executionContext) _UserRolesConnection_edges(ctx context.Context, fiel
 	return ec.marshalOUserRolesEdge2ᚕᚖgolbᚋgraphᚋmodelᚐUserRolesEdgeᚄ(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _UserRolesConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.UserRolesConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "UserRolesConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
-}
-
 func (ec *executionContext) _UserRolesConnection_roles(ctx context.Context, field graphql.CollectedField, obj *model.UserRolesConnection) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -8501,40 +8401,6 @@ func (ec *executionContext) _UsersConnection_edges(ctx context.Context, field gr
 	res := resTmp.([]*model.UsersEdge)
 	fc.Result = res
 	return ec.marshalOUsersEdge2ᚕᚖgolbᚋgraphᚋmodelᚐUsersEdgeᚄ(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _UsersConnection_totalCount(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "UsersConnection",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.TotalCount, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		if !graphql.HasFieldError(ctx, fc) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	res := resTmp.(int)
-	fc.Result = res
-	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _UsersConnection_users(ctx context.Context, field graphql.CollectedField, obj *model.UsersConnection) (ret graphql.Marshaler) {
@@ -10148,6 +10014,21 @@ func (ec *executionContext) _PageInfo(ctx context.Context, sel ast.SelectionSet,
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
+		case "currentPage":
+			out.Values[i] = ec._PageInfo_currentPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "perPage":
+			out.Values[i] = ec._PageInfo_perPage(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "total":
+			out.Values[i] = ec._PageInfo_total(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
 		case "startCursor":
 			out.Values[i] = ec._PageInfo_startCursor(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -10295,11 +10176,6 @@ func (ec *executionContext) _PostAuthorsConnection(ctx context.Context, sel ast.
 			}
 		case "edges":
 			out.Values[i] = ec._PostAuthorsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._PostAuthorsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "authors":
 			out.Values[i] = ec._PostAuthorsConnection_authors(ctx, field, obj)
 		default:
@@ -10360,11 +10236,6 @@ func (ec *executionContext) _PostTagsConnection(ctx context.Context, sel ast.Sel
 			}
 		case "edges":
 			out.Values[i] = ec._PostTagsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._PostTagsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "tags":
 			out.Values[i] = ec._PostTagsConnection_tags(ctx, field, obj)
 		default:
@@ -10425,11 +10296,6 @@ func (ec *executionContext) _PostsConnection(ctx context.Context, sel ast.Select
 			}
 		case "edges":
 			out.Values[i] = ec._PostsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._PostsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "posts":
 			out.Values[i] = ec._PostsConnection_posts(ctx, field, obj)
 		default:
@@ -10720,11 +10586,6 @@ func (ec *executionContext) _RoleUsersConnection(ctx context.Context, sel ast.Se
 			}
 		case "edges":
 			out.Values[i] = ec._RoleUsersConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._RoleUsersConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "users":
 			out.Values[i] = ec._RoleUsersConnection_users(ctx, field, obj)
 		default:
@@ -10785,11 +10646,6 @@ func (ec *executionContext) _RolesConnection(ctx context.Context, sel ast.Select
 			}
 		case "edges":
 			out.Values[i] = ec._RolesConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._RolesConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "roles":
 			out.Values[i] = ec._RolesConnection_roles(ctx, field, obj)
 		default:
@@ -10918,11 +10774,6 @@ func (ec *executionContext) _SettingsConnection(ctx context.Context, sel ast.Sel
 			}
 		case "edges":
 			out.Values[i] = ec._SettingsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._SettingsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "settings":
 			out.Values[i] = ec._SettingsConnection_settings(ctx, field, obj)
 		default:
@@ -11070,11 +10921,6 @@ func (ec *executionContext) _TagPostsConnection(ctx context.Context, sel ast.Sel
 			}
 		case "edges":
 			out.Values[i] = ec._TagPostsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._TagPostsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "posts":
 			out.Values[i] = ec._TagPostsConnection_posts(ctx, field, obj)
 		default:
@@ -11135,11 +10981,6 @@ func (ec *executionContext) _TagsConnection(ctx context.Context, sel ast.Selecti
 			}
 		case "edges":
 			out.Values[i] = ec._TagsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._TagsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "tags":
 			out.Values[i] = ec._TagsConnection_tags(ctx, field, obj)
 		default:
@@ -11302,11 +11143,6 @@ func (ec *executionContext) _UserPostsConnection(ctx context.Context, sel ast.Se
 			}
 		case "edges":
 			out.Values[i] = ec._UserPostsConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._UserPostsConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "posts":
 			out.Values[i] = ec._UserPostsConnection_posts(ctx, field, obj)
 		default:
@@ -11367,11 +11203,6 @@ func (ec *executionContext) _UserRolesConnection(ctx context.Context, sel ast.Se
 			}
 		case "edges":
 			out.Values[i] = ec._UserRolesConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._UserRolesConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "roles":
 			out.Values[i] = ec._UserRolesConnection_roles(ctx, field, obj)
 		default:
@@ -11432,11 +11263,6 @@ func (ec *executionContext) _UsersConnection(ctx context.Context, sel ast.Select
 			}
 		case "edges":
 			out.Values[i] = ec._UsersConnection_edges(ctx, field, obj)
-		case "totalCount":
-			out.Values[i] = ec._UsersConnection_totalCount(ctx, field, obj)
-			if out.Values[i] == graphql.Null {
-				invalids++
-			}
 		case "users":
 			out.Values[i] = ec._UsersConnection_users(ctx, field, obj)
 		default:

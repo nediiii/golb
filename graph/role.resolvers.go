@@ -24,7 +24,7 @@ func (r *roleResolver) CreateAt(ctx context.Context, obj *models.Role) (string, 
 	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
 }
 
-func (r *roleResolver) UserConnection(ctx context.Context, obj *models.Role, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error) {
+func (r *roleResolver) UserConnection(ctx context.Context, obj *models.Role, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RoleUsersConnection, error) {
 	list, _ := middlewares.GetDataloaderFromContext(ctx).RoleUsersLoader.Load(obj.ID)
 	v := &model.RoleUsersConnection{}
 	v.Users = list

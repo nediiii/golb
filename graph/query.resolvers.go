@@ -101,58 +101,108 @@ func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name
 	return &v, nil
 }
 
-func (r *queryResolver) AllSettings(ctx context.Context, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error) {
-	var settings []*models.Setting
-	services.DB.Model(&models.Setting{}).Find(&settings)
-	v := &model.SettingsConnection{}
-	v.Settings = settings
-	pageInfo := &model.PageInfo{}
-	pageInfo.HasNextPage = true
-	v.PageInfo = pageInfo
+func (r *queryResolver) AllSettings(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.Setting{})
+
+	// TODO use parameters to filter record
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
+	var list []*models.Setting
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.SettingsConnection{
+		Settings: list,
+		PageInfo: pageInfo,
+	}
 	return v, nil
 }
 
-func (r *queryResolver) AllRoles(ctx context.Context, first *int, last *int, after *string, before *string) (*model.RolesConnection, error) {
+func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.Role{})
+
+	// TODO use parameters to filter record
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
 	var list []*models.Role
-	services.DB.Model(&models.Role{}).Find(&list)
-	v := &model.RolesConnection{}
-	v.Roles = list
-	pageInfo := &model.PageInfo{}
-	pageInfo.HasNextPage = true
-	v.PageInfo = pageInfo
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.RolesConnection{
+		Roles:    list,
+		PageInfo: pageInfo,
+	}
 	return v, nil
 }
 
-func (r *queryResolver) AllUsers(ctx context.Context, first *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
+func (r *queryResolver) AllUsers(ctx context.Context, first *int, page *int, perPage *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.User{})
+
+	// TODO use parameters to filter record
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
 	var list []*models.User
-	services.DB.Model(&models.User{}).Find(&list)
-	v := &model.UsersConnection{}
-	v.Users = list
-	pageInfo := &model.PageInfo{}
-	pageInfo.HasNextPage = true
-	v.PageInfo = pageInfo
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.UsersConnection{
+		Users:    list,
+		PageInfo: pageInfo,
+	}
 	return v, nil
 }
 
-func (r *queryResolver) AllTags(ctx context.Context, first *int, last *int, after *string, before *string) (*model.TagsConnection, error) {
+func (r *queryResolver) AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.Tag{})
+
+	// TODO use parameters to filter record
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
 	var list []*models.Tag
-	services.DB.Model(&models.Tag{}).Find(&list)
-	v := &model.TagsConnection{}
-	v.Tags = list
-	pageInfo := &model.PageInfo{}
-	pageInfo.HasNextPage = true
-	v.PageInfo = pageInfo
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.TagsConnection{
+		Tags:     list,
+		PageInfo: pageInfo,
+	}
 	return v, nil
 }
 
-func (r *queryResolver) AllPosts(ctx context.Context, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
+func (r *queryResolver) AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.Post{})
+
+	// TODO use parameters to filter record
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
 	var list []*models.Post
-	services.DB.Model(&models.Post{}).Find(&list)
-	v := &model.PostsConnection{}
-	v.Posts = list
-	pageInfo := &model.PageInfo{}
-	pageInfo.HasNextPage = true
-	v.PageInfo = pageInfo
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.PostsConnection{
+		Posts:    list,
+		PageInfo: pageInfo,
+	}
 	return v, nil
 }
 

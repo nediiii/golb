@@ -14,7 +14,7 @@ type Mutation {
     @hasLogin
     @hasRole(role: "aRole")
   deleteSetting(id: ID!): Boolean! @hasLogin
-  updateSetting(id: ID!, key: String!, value: String!): Setting! @hasLogin
+  updateSetting(id: ID!, key: String, value: String): Setting! @hasLogin
   # role
   createRole(name: String!, description: String): Role!
   deleteRole(id: ID!): Boolean!

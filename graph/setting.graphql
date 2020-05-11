@@ -15,8 +15,7 @@ input InputSetting {
 
 type SettingsConnection {
   pageInfo: PageInfo!
-  edges: [SettingsEdge!]
-  totalCount: Int!
+  edges: [SettingsEdge!] @deprecated(reason: "not implement yet")
   settings: [Setting!]
 }
 

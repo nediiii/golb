@@ -6,6 +6,8 @@ type Role implements Node {
   name: String
   description: String
   userConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -21,8 +23,7 @@ input InputRole {
 
 type RolesConnection {
   pageInfo: PageInfo!
-  edges: [RolesEdge!]
-  totalCount: Int!
+  edges: [RolesEdge!] @deprecated(reason: "not implement yet")
   roles: [Role!]
 }
 
@@ -33,8 +34,7 @@ type RolesEdge {
 
 type UserRolesConnection {
   pageInfo: PageInfo!
-  edges: [UserRolesEdge!]
-  totalCount: Int!
+  edges: [UserRolesEdge!] @deprecated(reason: "not implement yet")
   roles: [Role!]
 }
 

@@ -65,17 +65,24 @@ type Jwt struct {
 }
 
 type PageInfo struct {
-	HasPreviousPage bool   `json:"hasPreviousPage"`
-	HasNextPage     bool   `json:"hasNextPage"`
-	StartCursor     string `json:"startCursor"`
-	EndCursor       string `json:"endCursor"`
+	// The `hasPreviousPage` field represent whether previous page availiable
+	HasPreviousPage bool `json:"hasPreviousPage"`
+	// The `hasNextPage` field represent whether next page availiable
+	HasNextPage bool `json:"hasNextPage"`
+	// The `currentPage` field represent the current page number of record
+	CurrentPage int `json:"currentPage"`
+	// The `perPage` field represent the number of records per page
+	PerPage int `json:"perPage"`
+	// The `total` field represent the total record number
+	Total       int    `json:"total"`
+	StartCursor string `json:"startCursor"`
+	EndCursor   string `json:"endCursor"`
 }
 
 type PostAuthorsConnection struct {
-	PageInfo   *PageInfo          `json:"pageInfo"`
-	Edges      []*PostAuthorsEdge `json:"edges"`
-	TotalCount int                `json:"totalCount"`
-	Authors    []*models.User     `json:"authors"`
+	PageInfo *PageInfo          `json:"pageInfo"`
+	Edges    []*PostAuthorsEdge `json:"edges"`
+	Authors  []*models.User     `json:"authors"`
 }
 
 type PostAuthorsEdge struct {
@@ -84,10 +91,9 @@ type PostAuthorsEdge struct {
 }
 
 type PostTagsConnection struct {
-	PageInfo   *PageInfo       `json:"pageInfo"`
-	Edges      []*PostTagsEdge `json:"edges"`
-	TotalCount int             `json:"totalCount"`
-	Tags       []*models.Tag   `json:"tags"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+	Edges    []*PostTagsEdge `json:"edges"`
+	Tags     []*models.Tag   `json:"tags"`
 }
 
 type PostTagsEdge struct {
@@ -96,10 +102,9 @@ type PostTagsEdge struct {
 }
 
 type PostsConnection struct {
-	PageInfo   *PageInfo      `json:"pageInfo"`
-	Edges      []*PostsEdge   `json:"edges"`
-	TotalCount int            `json:"totalCount"`
-	Posts      []*models.Post `json:"posts"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*PostsEdge   `json:"edges"`
+	Posts    []*models.Post `json:"posts"`
 }
 
 type PostsEdge struct {
@@ -108,10 +113,9 @@ type PostsEdge struct {
 }
 
 type RoleUsersConnection struct {
-	PageInfo   *PageInfo        `json:"pageInfo"`
-	Edges      []*RoleUsersEdge `json:"edges"`
-	TotalCount int              `json:"totalCount"`
-	Users      []*models.User   `json:"users"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*RoleUsersEdge `json:"edges"`
+	Users    []*models.User   `json:"users"`
 }
 
 type RoleUsersEdge struct {
@@ -120,10 +124,9 @@ type RoleUsersEdge struct {
 }
 
 type RolesConnection struct {
-	PageInfo   *PageInfo      `json:"pageInfo"`
-	Edges      []*RolesEdge   `json:"edges"`
-	TotalCount int            `json:"totalCount"`
-	Roles      []*models.Role `json:"roles"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*RolesEdge   `json:"edges"`
+	Roles    []*models.Role `json:"roles"`
 }
 
 type RolesEdge struct {
@@ -132,10 +135,9 @@ type RolesEdge struct {
 }
 
 type SettingsConnection struct {
-	PageInfo   *PageInfo         `json:"pageInfo"`
-	Edges      []*SettingsEdge   `json:"edges"`
-	TotalCount int               `json:"totalCount"`
-	Settings   []*models.Setting `json:"settings"`
+	PageInfo *PageInfo         `json:"pageInfo"`
+	Edges    []*SettingsEdge   `json:"edges"`
+	Settings []*models.Setting `json:"settings"`
 }
 
 type SettingsEdge struct {
@@ -144,10 +146,9 @@ type SettingsEdge struct {
 }
 
 type TagPostsConnection struct {
-	PageInfo   *PageInfo       `json:"pageInfo"`
-	Edges      []*TagPostsEdge `json:"edges"`
-	TotalCount int             `json:"totalCount"`
-	Posts      []*models.Post  `json:"posts"`
+	PageInfo *PageInfo       `json:"pageInfo"`
+	Edges    []*TagPostsEdge `json:"edges"`
+	Posts    []*models.Post  `json:"posts"`
 }
 
 type TagPostsEdge struct {
@@ -156,10 +157,9 @@ type TagPostsEdge struct {
 }
 
 type TagsConnection struct {
-	PageInfo   *PageInfo     `json:"pageInfo"`
-	Edges      []*TagsEdge   `json:"edges"`
-	TotalCount int           `json:"totalCount"`
-	Tags       []*models.Tag `json:"tags"`
+	PageInfo *PageInfo     `json:"pageInfo"`
+	Edges    []*TagsEdge   `json:"edges"`
+	Tags     []*models.Tag `json:"tags"`
 }
 
 type TagsEdge struct {
@@ -174,10 +174,9 @@ type UploadFile struct {
 }
 
 type UserPostsConnection struct {
-	PageInfo   *PageInfo        `json:"pageInfo"`
-	Edges      []*UserPostsEdge `json:"edges"`
-	TotalCount int              `json:"totalCount"`
-	Posts      []*models.Post   `json:"posts"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*UserPostsEdge `json:"edges"`
+	Posts    []*models.Post   `json:"posts"`
 }
 
 type UserPostsEdge struct {
@@ -186,10 +185,9 @@ type UserPostsEdge struct {
 }
 
 type UserRolesConnection struct {
-	PageInfo   *PageInfo        `json:"pageInfo"`
-	Edges      []*UserRolesEdge `json:"edges"`
-	TotalCount int              `json:"totalCount"`
-	Roles      []*models.Role   `json:"roles"`
+	PageInfo *PageInfo        `json:"pageInfo"`
+	Edges    []*UserRolesEdge `json:"edges"`
+	Roles    []*models.Role   `json:"roles"`
 }
 
 type UserRolesEdge struct {
@@ -198,10 +196,9 @@ type UserRolesEdge struct {
 }
 
 type UsersConnection struct {
-	PageInfo   *PageInfo      `json:"pageInfo"`
-	Edges      []*UsersEdge   `json:"edges"`
-	TotalCount int            `json:"totalCount"`
-	Users      []*models.User `json:"users"`
+	PageInfo *PageInfo      `json:"pageInfo"`
+	Edges    []*UsersEdge   `json:"edges"`
+	Users    []*models.User `json:"users"`
 }
 
 type UsersEdge struct {

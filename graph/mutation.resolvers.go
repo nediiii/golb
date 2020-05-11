@@ -125,88 +125,248 @@ func (r *mutationResolver) MultipleUploadWithPayload(ctx context.Context, req []
 }
 
 func (r *mutationResolver) CreateSetting(ctx context.Context, key string, value string) (*models.Setting, error) {
-	s := &models.Setting{}
-	s.Key = key
-	s.Value = value
+	obj := &models.Setting{}
+
+	obj.Key = key
+	obj.Value = value
+
 	var err gorm.Errors
-	err = services.DB.Create(s).GetErrors()
-	if len(err) > 0 {
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
 		return nil, err
 	}
-	return s, nil
+	return obj, nil
 }
 
 func (r *mutationResolver) DeleteSetting(ctx context.Context, id string) (bool, error) {
+	obj := &models.Setting{}
+
 	var err gorm.Errors
-	err = services.DB.Where("id = ?", id).Delete(models.Setting{}).GetErrors()
-	if len(err) > 0 {
+	if err = services.DB.Where("id = ?", id).Delete(obj).GetErrors(); len(err) > 0 {
 		return false, err
 	}
 	return true, nil
 }
 
-func (r *mutationResolver) UpdateSetting(ctx context.Context, id string, key string, value string) (*models.Setting, error) {
-	v := &models.Setting{}
+func (r *mutationResolver) UpdateSetting(ctx context.Context, id string, key *string, value *string) (*models.Setting, error) {
+	obj := &models.Setting{}
+
 	tx := services.DB
-	if tx.First(v, id).RecordNotFound() {
+	if tx.First(obj, id).RecordNotFound() {
 		return nil, errors.New("要更新的记录不存在")
 	}
-	v.Key = key
-	v.Value = value
+
+	if key != nil {
+		obj.Key = *key
+	}
+	if value != nil {
+		obj.Value = *value
+	}
+
 	var err gorm.Errors
-	tx.Save(v).GetErrors()
-	if len(err) > 0 {
+	if tx.Save(obj).GetErrors(); len(err) > 0 {
 		return nil, err
 	}
-	return v, nil
+	return obj, nil
 }
 
 func (r *mutationResolver) CreateRole(ctx context.Context, name string, description *string) (*models.Role, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Role{}
+
+	obj.Name = name
+	if description != nil {
+		obj.Description = *description
+	}
+
+	var err gorm.Errors
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) DeleteRole(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Role{}
+
+	var err gorm.Errors
+	if err = services.DB.Where("id = ?", id).Delete(obj).GetErrors(); len(err) > 0 {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateRole(ctx context.Context, id string, name *string, description *string) (*models.Role, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Role{}
+
+	tx := services.DB
+	if tx.First(obj, id).RecordNotFound() {
+		return nil, errors.New("要更新的记录不存在")
+	}
+
+	if name != nil {
+		obj.Name = *name
+	}
+	if description != nil {
+		obj.Description = *description
+	}
+
+	var err gorm.Errors
+	if tx.Save(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, slug string, name string, password string) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.User{}
+
+	obj.Slug = slug
+	obj.Name = name
+	obj.Password = password
+
+	var err gorm.Errors
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.User{}
+
+	var err gorm.Errors
+	if err = services.DB.Where("id = ?", id).Delete(obj).GetErrors(); len(err) > 0 {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateUser(ctx context.Context, id string, slug *string, name *string, password *string) (*models.User, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.User{}
+
+	tx := services.DB
+	if tx.First(obj, id).RecordNotFound() {
+		return nil, errors.New("要更新的记录不存在")
+	}
+
+	if slug != nil {
+		obj.Slug = *slug
+	}
+	if name != nil {
+		obj.Name = *name
+	}
+	if password != nil {
+		obj.Password = *password
+	}
+
+	var err gorm.Errors
+	if tx.Save(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) CreateTag(ctx context.Context, slug string, name string, description *string) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Tag{}
+
+	obj.Slug = slug
+	obj.Name = name
+	if description != nil {
+		obj.Description = *description
+	}
+
+	var err gorm.Errors
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) DeleteTag(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Tag{}
+
+	var err gorm.Errors
+	if err = services.DB.Where("id = ?", id).Delete(obj).GetErrors(); len(err) > 0 {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) UpdateTag(ctx context.Context, id string, slug *string, name *string, description *string) (*models.Tag, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Tag{}
+
+	tx := services.DB
+	if tx.First(obj, id).RecordNotFound() {
+		return nil, errors.New("要更新的记录不存在")
+	}
+
+	if slug != nil {
+		obj.Slug = *slug
+	}
+	if name != nil {
+		obj.Name = *name
+	}
+	if description != nil {
+		obj.Description = *description
+	}
+
+	var err gorm.Errors
+	if tx.Save(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) CreatePost(ctx context.Context, slug string, title string, markdown string, html string, primaryAuthorID string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Post{}
+
+	obj.Slug = slug
+	obj.Title = title
+	obj.Markdown = markdown
+	obj.HTML = html
+
+	var err gorm.Errors
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 func (r *mutationResolver) DeletePost(ctx context.Context, id string) (bool, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Post{}
+
+	var err gorm.Errors
+	if err = services.DB.Where("id = ?", id).Delete(obj).GetErrors(); len(err) > 0 {
+		return false, err
+	}
+	return true, nil
 }
 
 func (r *mutationResolver) UpdatePost(ctx context.Context, id string, slug *string, title *string, markdown *string, html *string, primaryAuthorID *string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error) {
-	panic(fmt.Errorf("not implemented"))
+	obj := &models.Post{}
+
+	tx := services.DB
+	if tx.First(obj, id).RecordNotFound() {
+		return nil, errors.New("要更新的记录不存在")
+	}
+
+	if slug != nil {
+		obj.Slug = *slug
+	}
+	if title != nil {
+		obj.Title = *title
+	}
+	if html != nil {
+		obj.HTML = *html
+	}
+	if markdown != nil {
+		obj.Markdown = *markdown
+	}
+
+	var err gorm.Errors
+	if tx.Save(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
 }
 
 // Mutation returns generated.MutationResolver implementation.

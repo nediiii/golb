@@ -9,12 +9,16 @@ type User implements Node {
   visibility: String
   bio: String
   roleConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): UserRolesConnection
   postConnection(
+    page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
@@ -32,8 +36,7 @@ input InputUser {
 
 type UsersConnection {
   pageInfo: PageInfo!
-  edges: [UsersEdge!]
-  totalCount: Int!
+  edges: [UsersEdge!] @deprecated(reason: "not implement yet")
   users: [User!]
 }
 
@@ -44,8 +47,7 @@ type UsersEdge {
 
 type RoleUsersConnection {
   pageInfo: PageInfo!
-  edges: [RoleUsersEdge!]
-  totalCount: Int!
+  edges: [RoleUsersEdge!] @deprecated(reason: "not implement yet")
   users: [User!]
 }
 
@@ -56,8 +58,7 @@ type RoleUsersEdge {
 
 type PostAuthorsConnection {
   pageInfo: PageInfo!
-  edges: [PostAuthorsEdge!]
-  totalCount: Int!
+  edges: [PostAuthorsEdge!] @deprecated(reason: "not implement yet")
   authors: [User!]
 }
 

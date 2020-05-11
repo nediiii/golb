@@ -24,14 +24,14 @@ func (r *postResolver) CreateAt(ctx context.Context, obj *models.Post) (string, 
 	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
 }
 
-func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error) {
+func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error) {
 	list, _ := middlewares.GetDataloaderFromContext(ctx).PostTagsLoader.Load(obj.ID)
 	v := &model.PostTagsConnection{}
 	v.Tags = list
 	return v, nil
 }
 
-func (r *postResolver) AuthorConnection(ctx context.Context, obj *models.Post, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error) {
+func (r *postResolver) AuthorConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error) {
 	list, _ := middlewares.GetDataloaderFromContext(ctx).PostAuthorsLoader.Load(obj.ID)
 	v := &model.PostAuthorsConnection{}
 	v.Authors = list

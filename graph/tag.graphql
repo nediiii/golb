@@ -6,16 +6,18 @@ type Tag implements Node {
   name: String!
   description: String
   postConnection(
+        page: Int
+    per_page: Int
     first: Int
     last: Int
     after: String
     before: String
   ): TagPostsConnection
 }
+
 type TagsConnection {
   pageInfo: PageInfo!
-  edges: [TagsEdge!]
-  totalCount: Int!
+  edges: [TagsEdge!] @deprecated(reason: "not implement yet")
   tags: [Tag!]
 }
 
@@ -25,8 +27,7 @@ type TagsEdge {
 }
 type PostTagsConnection {
   pageInfo: PageInfo!
-  edges: [PostTagsEdge!]
-  totalCount: Int!
+  edges: [PostTagsEdge!] @deprecated(reason: "not implement yet")
   tags: [Tag!]
 }
 
