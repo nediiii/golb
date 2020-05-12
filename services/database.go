@@ -35,7 +35,6 @@ func establishConnection() {
 		println(err.Error())
 		panic("failed to connect database")
 	}
-	db.Set("gorm:association_autoupdate", false)
 	db.LogMode(config.Debug)
 	DB = db
 }
@@ -81,7 +80,7 @@ func initData() {
 
 	// init posts data
 	for _, p := range models.PreDefinedPosts {
-		err := DB.Unscoped().Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p).GetErrors()
+		err := DB.Set("gorm:association_autoupdate", false).Unscoped().Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}

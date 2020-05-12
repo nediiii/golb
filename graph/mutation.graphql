@@ -23,8 +23,15 @@ type Mutation {
   # user
   createUser(slug: String!, name: String!, password: String!): User! @hasLogin
   deleteUser(id: ID!): Boolean! @hasLogin
-  updateUser(id: ID!, slug: String, name: String, password: String): User!
-    @hasLogin
+  updateUser(
+    id: ID!
+    slug: String
+    name: String
+    email: String
+    oldPassword: String
+    newPassword: String
+    bio: String
+  ): User! @hasLogin
 
   # tag
   createTag(slug: String!, name: String!, description: String): Tag! @hasLogin

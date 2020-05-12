@@ -248,7 +248,7 @@ func (r *mutationResolver) DeleteUser(ctx context.Context, id string) (bool, err
 	return true, nil
 }
 
-func (r *mutationResolver) UpdateUser(ctx context.Context, id string, slug *string, name *string, password *string) (*models.User, error) {
+func (r *mutationResolver) UpdateUser(ctx context.Context, id string, slug *string, name *string, email *string, oldPassword *string, newPassword *string, bio *string) (*models.User, error) {
 	obj := &models.User{}
 
 	tx := services.DB
@@ -256,14 +256,25 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, slug *stri
 		return nil, errors.New("要更新的记录不存在")
 	}
 
+	if oldPassword != nil || newPassword != nil {
+		if oldPassword != nil && newPassword != nil {
+			if len(*newPassword) < 8 {
+				return nil, errors.New("新密码长度不合规,请确认后重试")
+			}
+			if !utils.IsCorrect(obj.Password, *oldPassword) {
+				return nil, errors.New("旧密码错误, 请确认后重试")
+			}
+			obj.Password = *newPassword
+		} else {
+			return nil, errors.New("`oldPassword`和`newPassword`必须同时存在或者同时不存在")
+		}
+	}
+
 	if slug != nil {
 		obj.Slug = *slug
 	}
 	if name != nil {
 		obj.Name = *name
-	}
-	if password != nil {
-		obj.Password = *password
 	}
 
 	var err gorm.Errors

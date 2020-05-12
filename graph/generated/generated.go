@@ -91,7 +91,7 @@ type ComplexityRoot struct {
 		UpdateRole                func(childComplexity int, id string, name *string, description *string) int
 		UpdateSetting             func(childComplexity int, id string, key *string, value *string) int
 		UpdateTag                 func(childComplexity int, id string, slug *string, name *string, description *string) int
-		UpdateUser                func(childComplexity int, id string, slug *string, name *string, password *string) int
+		UpdateUser                func(childComplexity int, id string, slug *string, name *string, email *string, oldPassword *string, newPassword *string, bio *string) int
 	}
 
 	PageInfo struct {
@@ -308,7 +308,7 @@ type MutationResolver interface {
 	UpdateRole(ctx context.Context, id string, name *string, description *string) (*models.Role, error)
 	CreateUser(ctx context.Context, slug string, name string, password string) (*models.User, error)
 	DeleteUser(ctx context.Context, id string) (bool, error)
-	UpdateUser(ctx context.Context, id string, slug *string, name *string, password *string) (*models.User, error)
+	UpdateUser(ctx context.Context, id string, slug *string, name *string, email *string, oldPassword *string, newPassword *string, bio *string) (*models.User, error)
 	CreateTag(ctx context.Context, slug string, name string, description *string) (*models.Tag, error)
 	DeleteTag(ctx context.Context, id string) (bool, error)
 	UpdateTag(ctx context.Context, id string, slug *string, name *string, description *string) (*models.Tag, error)
@@ -688,7 +688,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["password"].(*string)), true
+		return e.complexity.Mutation.UpdateUser(childComplexity, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["email"].(*string), args["oldPassword"].(*string), args["newPassword"].(*string), args["bio"].(*string)), true
 
 	case "PageInfo.currentPage":
 		if e.complexity.PageInfo.CurrentPage == nil {
@@ -1670,8 +1670,15 @@ type JWT {
   # user
   createUser(slug: String!, name: String!, password: String!): User! @hasLogin
   deleteUser(id: ID!): Boolean! @hasLogin
-  updateUser(id: ID!, slug: String, name: String, password: String): User!
-    @hasLogin
+  updateUser(
+    id: ID!
+    slug: String
+    name: String
+    email: String
+    oldPassword: String
+    newPassword: String
+    bio: String
+  ): User! @hasLogin
 
   # tag
   createTag(slug: String!, name: String!, description: String): Tag! @hasLogin
@@ -2721,13 +2728,37 @@ func (ec *executionContext) field_Mutation_updateUser_args(ctx context.Context, 
 	}
 	args["name"] = arg2
 	var arg3 *string
-	if tmp, ok := rawArgs["password"]; ok {
+	if tmp, ok := rawArgs["email"]; ok {
 		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["password"] = arg3
+	args["email"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["oldPassword"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["oldPassword"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["newPassword"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["newPassword"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["bio"]; ok {
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bio"] = arg6
 	return args, nil
 }
 
@@ -4668,7 +4699,7 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdateUser(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["password"].(*string))
+			return ec.resolvers.Mutation().UpdateUser(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["email"].(*string), args["oldPassword"].(*string), args["newPassword"].(*string), args["bio"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasLogin == nil {
