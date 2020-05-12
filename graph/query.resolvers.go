@@ -145,7 +145,7 @@ func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, f
 	return v, nil
 }
 
-func (r *queryResolver) AllUsers(ctx context.Context, first *int, page *int, perPage *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
+func (r *queryResolver) AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.User{})
 	tx = tx.Order("id asc")

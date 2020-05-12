@@ -49,7 +49,7 @@ func initTable() {
 func initData() {
 	// init system settings data
 	for _, s := range models.PreDefinedSettings {
-		err := DB.Where(models.Setting{Key: s.Key}).FirstOrCreate(&s).GetErrors()
+		err := DB.Unscoped().Where(models.Setting{Key: s.Key}).FirstOrCreate(&s).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}
@@ -57,7 +57,7 @@ func initData() {
 
 	// init roles data
 	for _, r := range models.PreDefinedRoles {
-		err := DB.Where(models.Role{Name: r.Name}).FirstOrCreate(&r).GetErrors()
+		err := DB.Unscoped().Where(models.Role{Name: r.Name}).FirstOrCreate(&r).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}
@@ -65,7 +65,7 @@ func initData() {
 
 	// init users data
 	for _, u := range models.PreDefinedUsers {
-		err := DB.Where(models.User{Name: u.Name}).FirstOrCreate(&u).GetErrors()
+		err := DB.Unscoped().Where(models.User{Name: u.Name}).FirstOrCreate(&u).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}
@@ -73,7 +73,7 @@ func initData() {
 
 	// init tags data
 	for _, t := range models.PreDefinedTags {
-		err := DB.Where(models.Tag{Name: t.Name}).FirstOrCreate(&t).GetErrors()
+		err := DB.Unscoped().Where(models.Tag{Name: t.Name}).FirstOrCreate(&t).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}
@@ -81,7 +81,7 @@ func initData() {
 
 	// init posts data
 	for _, p := range models.PreDefinedPosts {
-		err := DB.Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p).GetErrors()
+		err := DB.Unscoped().Where(models.Post{Slug: p.Slug}).FirstOrCreate(&p).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}

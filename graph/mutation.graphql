@@ -4,10 +4,10 @@ type Mutation {
   auth(username: String, password: String, token: String): JWT!
 
   # file
-  singleUpload(file: Upload!): File!
-  singleUploadWithPayload(req: UploadFile!): File!
-  multipleUpload(files: [Upload!]!): [File!]!
-  multipleUploadWithPayload(req: [UploadFile!]!): [File!]!
+  singleUpload(file: Upload!): File! @hasLogin
+  singleUploadWithPayload(req: UploadFile!): File! @hasLogin
+  multipleUpload(files: [Upload!]!): [File!]! @hasLogin
+  multipleUploadWithPayload(req: [UploadFile!]!): [File!]! @hasLogin
 
   # setting
   createSetting(key: String!, value: String!): Setting!
@@ -16,14 +16,15 @@ type Mutation {
   deleteSetting(id: ID!): Boolean! @hasLogin
   updateSetting(id: ID!, key: String, value: String): Setting! @hasLogin
   # role
-  createRole(name: String!, description: String): Role!
-  deleteRole(id: ID!): Boolean!
-  updateRole(id: ID!, name: String, description: String): Role!
+  createRole(name: String!, description: String): Role! @hasLogin
+  deleteRole(id: ID!): Boolean! @hasLogin
+  updateRole(id: ID!, name: String, description: String): Role! @hasLogin
 
   # user
-  createUser(slug: String!, name: String!, password: String!): User!
-  deleteUser(id: ID!): Boolean!
+  createUser(slug: String!, name: String!, password: String!): User! @hasLogin
+  deleteUser(id: ID!): Boolean! @hasLogin
   updateUser(id: ID!, slug: String, name: String, password: String): User!
+    @hasLogin
 
   # tag
   createTag(slug: String!, name: String!, description: String): Tag! @hasLogin
@@ -47,8 +48,8 @@ type Mutation {
     image: String
     language: String
     status: String
-  ): Post!
-  deletePost(id: ID!): Boolean!
+  ): Post! @hasLogin
+  deletePost(id: ID!): Boolean! @hasLogin
   updatePost(
     id: ID!
     slug: String
@@ -65,5 +66,5 @@ type Mutation {
     image: String
     language: String
     status: String
-  ): Post!
+  ): Post! @hasLogin
 }

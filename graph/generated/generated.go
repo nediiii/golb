@@ -156,7 +156,7 @@ type ComplexityRoot struct {
 		AllRoles    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		AllSettings func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		AllTags     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		AllUsers    func(childComplexity int, first *int, page *int, perPage *int, last *int, after *string, before *string) int
+		AllUsers    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		Node        func(childComplexity int, id string) int
 		Post        func(childComplexity int, id *string, slug *string, name *string) int
 		Role        func(childComplexity int, id *string, name *string) int
@@ -333,7 +333,7 @@ type QueryResolver interface {
 	Post(ctx context.Context, id *string, slug *string, name *string) (*models.Post, error)
 	AllSettings(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error)
 	AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error)
-	AllUsers(ctx context.Context, first *int, page *int, perPage *int, last *int, after *string, before *string) (*model.UsersConnection, error)
+	AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error)
 	AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error)
 	AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
 }
@@ -989,7 +989,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllUsers(childComplexity, args["first"].(*int), args["page"].(*int), args["perPage"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllUsers(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.node":
 		if e.complexity.Query.Node == nil {
@@ -1651,10 +1651,10 @@ type JWT {
   auth(username: String, password: String, token: String): JWT!
 
   # file
-  singleUpload(file: Upload!): File!
-  singleUploadWithPayload(req: UploadFile!): File!
-  multipleUpload(files: [Upload!]!): [File!]!
-  multipleUploadWithPayload(req: [UploadFile!]!): [File!]!
+  singleUpload(file: Upload!): File! @hasLogin
+  singleUploadWithPayload(req: UploadFile!): File! @hasLogin
+  multipleUpload(files: [Upload!]!): [File!]! @hasLogin
+  multipleUploadWithPayload(req: [UploadFile!]!): [File!]! @hasLogin
 
   # setting
   createSetting(key: String!, value: String!): Setting!
@@ -1663,14 +1663,15 @@ type JWT {
   deleteSetting(id: ID!): Boolean! @hasLogin
   updateSetting(id: ID!, key: String, value: String): Setting! @hasLogin
   # role
-  createRole(name: String!, description: String): Role!
-  deleteRole(id: ID!): Boolean!
-  updateRole(id: ID!, name: String, description: String): Role!
+  createRole(name: String!, description: String): Role! @hasLogin
+  deleteRole(id: ID!): Boolean! @hasLogin
+  updateRole(id: ID!, name: String, description: String): Role! @hasLogin
 
   # user
-  createUser(slug: String!, name: String!, password: String!): User!
-  deleteUser(id: ID!): Boolean!
+  createUser(slug: String!, name: String!, password: String!): User! @hasLogin
+  deleteUser(id: ID!): Boolean! @hasLogin
   updateUser(id: ID!, slug: String, name: String, password: String): User!
+    @hasLogin
 
   # tag
   createTag(slug: String!, name: String!, description: String): Tag! @hasLogin
@@ -1694,8 +1695,8 @@ type JWT {
     image: String
     language: String
     status: String
-  ): Post!
-  deletePost(id: ID!): Boolean!
+  ): Post! @hasLogin
+  deletePost(id: ID!): Boolean! @hasLogin
   updatePost(
     id: ID!
     slug: String
@@ -1712,7 +1713,7 @@ type JWT {
     image: String
     language: String
     status: String
-  ): Post!
+  ): Post! @hasLogin
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/pagination.graphql", Input: `type PageInfo {
@@ -1838,22 +1839,22 @@ type Query @hasLogin {
   ): SettingsConnection
 
   allRoles(
-    page: Int
-    perPage: Int
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String
     before: String
-  ): RolesConnection
+  ): RolesConnection @hasLogin
 
   allUsers(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
-    page: Int
-    perPage: Int
     last: Int
     after: String
     before: String
-  ): UsersConnection
+  ): UsersConnection @hasLogin
 
   allTags(
     page: Int = 1
@@ -3072,29 +3073,29 @@ func (ec *executionContext) field_Query_allUsers_args(ctx context.Context, rawAr
 	var err error
 	args := map[string]interface{}{}
 	var arg0 *int
-	if tmp, ok := rawArgs["first"]; ok {
+	if tmp, ok := rawArgs["page"]; ok {
 		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg0
+	args["page"] = arg0
 	var arg1 *int
-	if tmp, ok := rawArgs["page"]; ok {
+	if tmp, ok := rawArgs["perPage"]; ok {
 		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["page"] = arg1
+	args["perPage"] = arg1
 	var arg2 *int
-	if tmp, ok := rawArgs["perPage"]; ok {
+	if tmp, ok := rawArgs["first"]; ok {
 		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["perPage"] = arg2
+	args["first"] = arg2
 	var arg3 *int
 	if tmp, ok := rawArgs["last"]; ok {
 		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
@@ -3923,8 +3924,28 @@ func (ec *executionContext) _Mutation_singleUpload(ctx context.Context, field gr
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SingleUpload(rctx, args["file"].(graphql.Upload))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SingleUpload(rctx, args["file"].(graphql.Upload))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/graph/model.File`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -3964,8 +3985,28 @@ func (ec *executionContext) _Mutation_singleUploadWithPayload(ctx context.Contex
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().SingleUploadWithPayload(rctx, args["req"].(model.UploadFile))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().SingleUploadWithPayload(rctx, args["req"].(model.UploadFile))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/graph/model.File`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4005,8 +4046,28 @@ func (ec *executionContext) _Mutation_multipleUpload(ctx context.Context, field 
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MultipleUpload(rctx, args["files"].([]*graphql.Upload))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MultipleUpload(rctx, args["files"].([]*graphql.Upload))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*golb/graph/model.File`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4046,8 +4107,28 @@ func (ec *executionContext) _Mutation_multipleUploadWithPayload(ctx context.Cont
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().MultipleUploadWithPayload(rctx, args["req"].([]*model.UploadFile))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().MultipleUploadWithPayload(rctx, args["req"].([]*model.UploadFile))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.([]*model.File); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be []*golb/graph/model.File`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4280,8 +4361,28 @@ func (ec *executionContext) _Mutation_createRole(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateRole(rctx, args["name"].(string), args["description"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateRole(rctx, args["name"].(string), args["description"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Role); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Role`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4321,8 +4422,28 @@ func (ec *executionContext) _Mutation_deleteRole(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteRole(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteRole(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4362,8 +4483,28 @@ func (ec *executionContext) _Mutation_updateRole(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateRole(rctx, args["id"].(string), args["name"].(*string), args["description"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateRole(rctx, args["id"].(string), args["name"].(*string), args["description"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Role); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Role`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4403,8 +4544,28 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreateUser(rctx, args["slug"].(string), args["name"].(string), args["password"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreateUser(rctx, args["slug"].(string), args["name"].(string), args["password"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4444,8 +4605,28 @@ func (ec *executionContext) _Mutation_deleteUser(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeleteUser(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeleteUser(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4485,8 +4666,28 @@ func (ec *executionContext) _Mutation_updateUser(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdateUser(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["password"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdateUser(rctx, args["id"].(string), args["slug"].(*string), args["name"].(*string), args["password"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.User); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.User`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4709,8 +4910,28 @@ func (ec *executionContext) _Mutation_createPost(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().CreatePost(rctx, args["slug"].(string), args["title"].(string), args["markdown"].(string), args["html"].(string), args["primaryAuthorId"].(string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().CreatePost(rctx, args["slug"].(string), args["title"].(string), args["markdown"].(string), args["html"].(string), args["primaryAuthorId"].(string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Post); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Post`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4750,8 +4971,28 @@ func (ec *executionContext) _Mutation_deletePost(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().DeletePost(rctx, args["id"].(string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().DeletePost(rctx, args["id"].(string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(bool); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be bool`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -4791,8 +5032,28 @@ func (ec *executionContext) _Mutation_updatePost(ctx context.Context, field grap
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Mutation().UpdatePost(rctx, args["id"].(string), args["slug"].(*string), args["title"].(*string), args["markdown"].(*string), args["html"].(*string), args["primaryAuthorId"].(*string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Mutation().UpdatePost(rctx, args["id"].(string), args["slug"].(*string), args["title"].(*string), args["markdown"].(*string), args["html"].(*string), args["primaryAuthorId"].(*string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*models.Post); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Post`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6198,8 +6459,28 @@ func (ec *executionContext) _Query_allRoles(ctx context.Context, field graphql.C
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllRoles(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().AllRoles(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.RolesConnection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/graph/model.RolesConnection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -6236,8 +6517,28 @@ func (ec *executionContext) _Query_allUsers(ctx context.Context, field graphql.C
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllUsers(rctx, args["first"].(*int), args["page"].(*int), args["perPage"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		directive0 := func(rctx context.Context) (interface{}, error) {
+			ctx = rctx // use context from middleware stack in children
+			return ec.resolvers.Query().AllUsers(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		}
+		directive1 := func(ctx context.Context) (interface{}, error) {
+			if ec.directives.HasLogin == nil {
+				return nil, errors.New("directive hasLogin is not implemented")
+			}
+			return ec.directives.HasLogin(ctx, nil, directive0)
+		}
+
+		tmp, err := directive1(rctx)
+		if err != nil {
+			return nil, err
+		}
+		if tmp == nil {
+			return nil, nil
+		}
+		if data, ok := tmp.(*model.UsersConnection); ok {
+			return data, nil
+		}
+		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/graph/model.UsersConnection`, tmp)
 	})
 	if err != nil {
 		ec.Error(ctx, err)

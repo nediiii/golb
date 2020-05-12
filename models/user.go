@@ -1,6 +1,8 @@
 package models
 
 import (
+	"errors"
+	"golb/utils"
 	"time"
 
 	"github.com/google/uuid"
@@ -38,12 +40,16 @@ func (v *User) IsNode() {}
 
 // BeforeCreate 初始化uuid
 func (v *User) BeforeCreate(scope *gorm.Scope) error {
-	scope.SetColumn("UUID", uuid.New())
-	return nil
+	if pwdLen := len(v.Password); pwdLen >= 8 && pwdLen <= 64 {
+		scope.SetColumn("UUID", uuid.New())
+		scope.SetColumn("Password", utils.Hash(v.Password))
+		return nil
+	}
+	return errors.New("password length invalid, should be in 8-64 character")
 }
 
 // PreDefinedUsers PreDefinedUsers
 var PreDefinedUsers = []*User{
-	{Name: "owner", Slug: "owner", Password: "root", Roles: PreDefinedRoles},
-	{Name: "admin", Slug: "admin", Password: "admin", Roles: PreDefinedRoles[1:]},
+	{Name: "owner", Slug: "owner", Password: "rootroot", Roles: PreDefinedRoles},
+	{Name: "admin", Slug: "admin", Password: "adminadmin", Roles: PreDefinedRoles[1:]},
 }

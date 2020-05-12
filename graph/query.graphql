@@ -27,22 +27,22 @@ type Query @hasLogin {
   ): SettingsConnection
 
   allRoles(
-    page: Int
-    perPage: Int
+    page: Int = 1
+    perPage: Int = 10
     first: Int
     last: Int
     after: String
     before: String
-  ): RolesConnection
+  ): RolesConnection @hasLogin
 
   allUsers(
+    page: Int = 1
+    perPage: Int = 10
     first: Int
-    page: Int
-    perPage: Int
     last: Int
     after: String
     before: String
-  ): UsersConnection
+  ): UsersConnection @hasLogin
 
   allTags(
     page: Int = 1

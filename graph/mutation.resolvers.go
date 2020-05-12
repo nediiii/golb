@@ -8,11 +8,11 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
-	"fmt"
 	"golb/graph/generated"
 	"golb/graph/model"
 	"golb/models"
 	"golb/services"
+	"golb/utils"
 	"io/ioutil"
 	"strconv"
 	"time"
@@ -23,42 +23,41 @@ import (
 )
 
 func (r *mutationResolver) Auth(ctx context.Context, username *string, password *string, token *string) (*model.Jwt, error) {
-	var jwtKey = []byte("golb.sys.jwt.key")
-
 	if token != nil {
-		parseToken, err := jwt.Parse(*token, func(tk *jwt.Token) (interface{}, error) {
-			// Don't forget to validate the alg is what you expect:
-			if _, ok := tk.Method.(*jwt.SigningMethodHMAC); !ok {
-				return nil, fmt.Errorf("Unexpected signing method: %v", tk.Header["alg"])
+		// use token
+		parseToken, err := utils.JwtParse(*token)
+		if err == nil {
+			// 生成新token
+			if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
+				tx := services.DB
+				v := &models.User{}
+				name := claims["aud"].(string)
+				if !tx.Where("name = ?", name).First(v).RecordNotFound() {
+					newClaims := utils.GenerateClaims(v.Slug, v.ID)
+					tokenStr, err := utils.GenerateTokenWithClaims(newClaims)
+					if err == nil {
+						jwt := &model.Jwt{ExpireAt: strconv.FormatInt(newClaims.ExpiresAt, 10), Token: tokenStr}
+						return jwt, nil
+					}
+				}
 			}
-
-			// jwtKey is a []byte containing your secret, e.g. []byte("my_secret_key")
-			return jwtKey, nil
-		})
-		if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
-			fmt.Println(claims["exp"], claims["iss"])
-			fmt.Println("valid: ", parseToken.Valid)
-			// aud exp jti iat iss nbf sub
-			return nil, nil
 		}
-		return nil, err
+		return nil, errors.New("Authentication fail, please retry with correct token")
 	} else if username != nil && password != nil {
-		claims := &jwt.StandardClaims{
-			Audience:  *username,                               // 受众
-			ExpiresAt: time.Now().Add(time.Minute * 15).Unix(), // 失效时间
-			Id:        "1",                                     // 编号
-			IssuedAt:  time.Now().Unix(),                       // 签发时间
-			Issuer:    "golb.sys",                              // 签发人
-			NotBefore: time.Now().Unix(),                       // 生效时间
-			Subject:   "login",                                 // 主题
+		// use username and password
+		tx := services.DB
+		v := &models.User{}
+		if !tx.Where("name = ?", username).First(v).RecordNotFound() {
+			if utils.IsCorrect(v.Password, *password) {
+				claims := utils.GenerateClaims(v.Slug, v.ID)
+				tokenStr, err := utils.GenerateTokenWithClaims(claims)
+				if err == nil {
+					jwt := &model.Jwt{ExpireAt: strconv.FormatInt(claims.ExpiresAt, 10), Token: tokenStr}
+					return jwt, nil
+				}
+			}
 		}
-
-		token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-		str, err := token.SignedString(jwtKey)
-		if err != nil {
-			fmt.Print(err.Error())
-		}
-		return &model.Jwt{ExpireAt: strconv.FormatInt(claims.ExpiresAt, 10), Token: str}, nil
+		return nil, errors.New("Authentication fail, please retry with correct username and password")
 	}
 	return nil, errors.New("Invalid input! You must send a token or (username and password)")
 }
