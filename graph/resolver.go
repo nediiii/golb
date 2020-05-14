@@ -7,6 +7,7 @@ import (
 	"golb/configs"
 	"golb/graph/model"
 	"golb/middlewares"
+	"golb/utils"
 
 	"github.com/99designs/gqlgen/graphql"
 	jwt "github.com/dgrijalva/jwt-go"
@@ -26,24 +27,15 @@ func HasLoginFn(ctx context.Context, obj interface{}, next graphql.Resolver) (re
 	if !configs.JwtEnable() {
 		return next(ctx)
 	}
-	fmt.Println("HasLoginFn被触发")
+	// fmt.Println("HasLoginFn被触发")
 
 	ginContext := middlewares.GetGinContextFromContext(ctx)
 	token := ginContext.Request.Header.Get("Authorization")
 	if len(token) == 0 {
 		return nil, errors.New("please provide a valid token in header `Authorization`")
 	}
-	parseToken, err := jwt.Parse(token, func(tk *jwt.Token) (interface{}, error) {
-		var jwtKey = []byte("golb.sys.jwt.key")
-		if _, ok := tk.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", tk.Header["alg"])
-		}
-		return jwtKey, nil
-	})
-	if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
-		fmt.Println(claims["exp"], claims["iss"])
-		fmt.Println("valid: ", parseToken.Valid)
-		// aud exp jti iat iss nbf sub
+	parseToken, err := utils.JwtParse(token)
+	if parseToken != nil && parseToken.Valid {
 		return next(ctx)
 	}
 	return nil, errors.New("token invalid")

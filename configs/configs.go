@@ -57,8 +57,9 @@ func (dc *DatabaseConfig) ReadConfig() {
 
 // JwtKey JwtKey
 func JwtKey() (key []byte) {
-	viper.UnmarshalKey("site.secure.jwt.key", &key)
-	return
+	var s string
+	viper.UnmarshalKey("site.secure.jwt.key", &s)
+	return []byte(s)
 }
 
 // JwtEnable JwtEnable

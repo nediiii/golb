@@ -11,10 +11,22 @@ import (
 	"golb/graph/model"
 	"golb/models"
 	"golb/services"
+	"log"
+	"runtime"
 )
 
 func (r *queryResolver) Node(ctx context.Context, id string) (model.Node, error) {
 	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *queryResolver) SystemStatus(ctx context.Context) (*model.SysStatus, error) {
+	// return nil, nil
+	return &model.SysStatus{
+		Arch:    runtime.GOARCH,
+		Os:      runtime.GOOS,
+		Version: runtime.Version(),
+		NumCPU:  runtime.NumCPU(),
+	}, nil
 }
 
 func (r *queryResolver) Setting(ctx context.Context, id *string, key *string) (*models.Setting, error) {
@@ -146,6 +158,7 @@ func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, f
 }
 
 func (r *queryResolver) AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
+	log.Println("AllUsers trigger")
 	tx := services.DB
 	tx = tx.Model(&models.User{})
 	tx = tx.Order("id asc")
@@ -189,12 +202,16 @@ func (r *queryResolver) AllTags(ctx context.Context, page *int, perPage *int, fi
 	return v, nil
 }
 
-func (r *queryResolver) AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
+func (r *queryResolver) AllPosts(ctx context.Context, page *int, perPage *int, paged *bool, first *int, last *int, after *string, before *string) (*model.PostsConnection, error) {
 	tx := services.DB
 	tx = tx.Model(&models.Post{})
 	tx = tx.Order("id asc")
 
 	// TODO use parameters to filter record
+
+	if paged != nil {
+		tx = tx.Where("paged = ?", *paged)
+	}
 
 	// paging apply to tx and genertae pageInfo
 	tx, pageInfo := paging(tx, *page, *perPage)

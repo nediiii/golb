@@ -5,6 +5,8 @@
 type Query @hasLogin {
   node(id: ID!): Node @deprecated(reason: "not implement yet")
 
+  systemStatus: SysStatus
+
   setting(id: ID, key: String): Setting
 
   role(id: ID, name: String): Role
@@ -56,6 +58,7 @@ type Query @hasLogin {
   allPosts(
     page: Int = 1
     perPage: Int = 10
+    paged: Boolean
     first: Int
     last: Int
     after: String

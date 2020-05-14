@@ -147,6 +147,13 @@ type SettingsEdge struct {
 	Cursor string          `json:"cursor"`
 }
 
+type SysStatus struct {
+	Arch    string `json:"Arch"`
+	Os      string `json:"Os"`
+	Version string `json:"Version"`
+	NumCPU  int    `json:"NumCPU"`
+}
+
 type TagPostsConnection struct {
 	PageInfo *PageInfo       `json:"pageInfo"`
 	Edges    []*TagPostsEdge `json:"edges"`

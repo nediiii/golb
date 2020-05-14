@@ -9,19 +9,27 @@ import (
 	"golb/graph/model"
 	"golb/middlewares"
 	"golb/models"
-	"strconv"
+	"golb/utils"
 )
 
 func (r *postResolver) ID(ctx context.Context, obj *models.Post) (string, error) {
-	return strconv.Itoa(int(obj.ID)), nil
+	return utils.Uint2String(obj.ID), nil
 }
 
 func (r *postResolver) UpdateAt(ctx context.Context, obj *models.Post) (string, error) {
-	return strconv.FormatInt(obj.UpdatedAt.Unix(), 10), nil
+	return utils.Time2UnixString(&obj.UpdatedAt), nil
 }
 
 func (r *postResolver) CreateAt(ctx context.Context, obj *models.Post) (string, error) {
-	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
+	return utils.Time2UnixString(&obj.CreatedAt), nil
+}
+
+func (r *postResolver) PublishedAt(ctx context.Context, obj *models.Post) (string, error) {
+	return utils.Time2UnixString(&obj.PublishedAt), nil
+}
+
+func (r *postResolver) PublishedBy(ctx context.Context, obj *models.Post) (string, error) {
+	return utils.Uint2String(obj.PublishedBy), nil
 }
 
 func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error) {

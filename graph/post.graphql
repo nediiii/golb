@@ -2,11 +2,20 @@ type Post implements Node {
   id: ID!
   updateAt: Date!
   createAt: Date!
+  slug: String!
   title: String!
   html: String!
   markdown: String!
-  slug: String!
+  excerpt: String!
+  featured: Boolean!
+  paged: Boolean!
   status: String!
+  image: String!
+  metaTitle: String!
+  metaDescription: String!
+  publishedAt: Date!
+  publishedBy: ID!
+  commentable: Boolean!
   tagConnection(
     page: Int
     per_page: Int

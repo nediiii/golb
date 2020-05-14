@@ -9,3 +9,10 @@ directive @hasLogin on OBJECT | FIELD_DEFINITION
 
 "The `@hasRole` directive type represents it needs the user has a specific role"
 directive @hasRole(role: String!) on FIELD_DEFINITION
+
+type SysStatus {
+  Arch: String!
+  Os: String!
+  Version: String!
+  NumCPU: Int!
+}

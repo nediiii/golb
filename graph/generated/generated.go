@@ -73,7 +73,7 @@ type ComplexityRoot struct {
 
 	Mutation struct {
 		Auth                      func(childComplexity int, username *string, password *string, token *string) int
-		CreatePost                func(childComplexity int, slug string, title string, markdown string, html string, primaryAuthorID string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) int
+		CreatePost                func(childComplexity int, authors []string, commentable *bool, excerpt *string, featured *bool, html string, image *string, metaTitle *string, metaDescription *string, markdown string, primaryAuthorID string, publishedBy *string, publishedAt *string, paged *bool, slug string, status *string, tags []string, title string) int
 		CreateRole                func(childComplexity int, name string, description *string) int
 		CreateSetting             func(childComplexity int, key string, value string) int
 		CreateTag                 func(childComplexity int, slug string, name string, description *string) int
@@ -87,7 +87,7 @@ type ComplexityRoot struct {
 		MultipleUploadWithPayload func(childComplexity int, req []*model.UploadFile) int
 		SingleUpload              func(childComplexity int, file graphql.Upload) int
 		SingleUploadWithPayload   func(childComplexity int, req model.UploadFile) int
-		UpdatePost                func(childComplexity int, id string, slug *string, title *string, markdown *string, html *string, primaryAuthorID *string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) int
+		UpdatePost                func(childComplexity int, authors []string, commentable *bool, excerpt *string, featured *bool, html *string, id string, image *string, markdown *string, metaTitle *string, metaDescription *string, paged *bool, primaryAuthorID *string, publishedBy *string, publishedAt *string, slug *string, status *string, tags []string, title *string) int
 		UpdateRole                func(childComplexity int, id string, name *string, description *string) int
 		UpdateSetting             func(childComplexity int, id string, key *string, value *string) int
 		UpdateTag                 func(childComplexity int, id string, slug *string, name *string, description *string) int
@@ -106,11 +106,20 @@ type ComplexityRoot struct {
 
 	Post struct {
 		AuthorConnection func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		Commentable      func(childComplexity int) int
 		CreateAt         func(childComplexity int) int
+		Excerpt          func(childComplexity int) int
+		Featured         func(childComplexity int) int
 		HTML             func(childComplexity int) int
 		ID               func(childComplexity int) int
+		Image            func(childComplexity int) int
 		Markdown         func(childComplexity int) int
+		MetaDescription  func(childComplexity int) int
+		MetaTitle        func(childComplexity int) int
+		Paged            func(childComplexity int) int
 		PrimaryAuthor    func(childComplexity int) int
+		PublishedAt      func(childComplexity int) int
+		PublishedBy      func(childComplexity int) int
 		Slug             func(childComplexity int) int
 		Status           func(childComplexity int) int
 		TagConnection    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
@@ -152,17 +161,18 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
-		AllPosts    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		AllRoles    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		AllSettings func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		AllTags     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		AllUsers    func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
-		Node        func(childComplexity int, id string) int
-		Post        func(childComplexity int, id *string, slug *string, name *string) int
-		Role        func(childComplexity int, id *string, name *string) int
-		Setting     func(childComplexity int, id *string, key *string) int
-		Tag         func(childComplexity int, id *string, slug *string, name *string) int
-		User        func(childComplexity int, id *string, slug *string, name *string) int
+		AllPosts     func(childComplexity int, page *int, perPage *int, paged *bool, first *int, last *int, after *string, before *string) int
+		AllRoles     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllSettings  func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllTags      func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		AllUsers     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
+		Node         func(childComplexity int, id string) int
+		Post         func(childComplexity int, id *string, slug *string, name *string) int
+		Role         func(childComplexity int, id *string, name *string) int
+		Setting      func(childComplexity int, id *string, key *string) int
+		SystemStatus func(childComplexity int) int
+		Tag          func(childComplexity int, id *string, slug *string, name *string) int
+		User         func(childComplexity int, id *string, slug *string, name *string) int
 	}
 
 	Role struct {
@@ -213,6 +223,13 @@ type ComplexityRoot struct {
 	SettingsEdge struct {
 		Cursor func(childComplexity int) int
 		Node   func(childComplexity int) int
+	}
+
+	SysStatus struct {
+		Arch    func(childComplexity int) int
+		NumCPU  func(childComplexity int) int
+		Os      func(childComplexity int) int
+		Version func(childComplexity int) int
 	}
 
 	Tag struct {
@@ -312,20 +329,24 @@ type MutationResolver interface {
 	CreateTag(ctx context.Context, slug string, name string, description *string) (*models.Tag, error)
 	DeleteTag(ctx context.Context, id string) (bool, error)
 	UpdateTag(ctx context.Context, id string, slug *string, name *string, description *string) (*models.Tag, error)
-	CreatePost(ctx context.Context, slug string, title string, markdown string, html string, primaryAuthorID string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error)
+	CreatePost(ctx context.Context, authors []string, commentable *bool, excerpt *string, featured *bool, html string, image *string, metaTitle *string, metaDescription *string, markdown string, primaryAuthorID string, publishedBy *string, publishedAt *string, paged *bool, slug string, status *string, tags []string, title string) (*models.Post, error)
 	DeletePost(ctx context.Context, id string) (bool, error)
-	UpdatePost(ctx context.Context, id string, slug *string, title *string, markdown *string, html *string, primaryAuthorID *string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error)
+	UpdatePost(ctx context.Context, authors []string, commentable *bool, excerpt *string, featured *bool, html *string, id string, image *string, markdown *string, metaTitle *string, metaDescription *string, paged *bool, primaryAuthorID *string, publishedBy *string, publishedAt *string, slug *string, status *string, tags []string, title *string) (*models.Post, error)
 }
 type PostResolver interface {
 	ID(ctx context.Context, obj *models.Post) (string, error)
 	UpdateAt(ctx context.Context, obj *models.Post) (string, error)
 	CreateAt(ctx context.Context, obj *models.Post) (string, error)
 
+	PublishedAt(ctx context.Context, obj *models.Post) (string, error)
+	PublishedBy(ctx context.Context, obj *models.Post) (string, error)
+
 	TagConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostTagsConnection, error)
 	AuthorConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostAuthorsConnection, error)
 }
 type QueryResolver interface {
 	Node(ctx context.Context, id string) (model.Node, error)
+	SystemStatus(ctx context.Context) (*model.SysStatus, error)
 	Setting(ctx context.Context, id *string, key *string) (*models.Setting, error)
 	Role(ctx context.Context, id *string, name *string) (*models.Role, error)
 	User(ctx context.Context, id *string, slug *string, name *string) (*models.User, error)
@@ -335,7 +356,7 @@ type QueryResolver interface {
 	AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error)
 	AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error)
 	AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error)
-	AllPosts(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
+	AllPosts(ctx context.Context, page *int, perPage *int, paged *bool, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *models.Role) (string, error)
@@ -472,7 +493,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreatePost(childComplexity, args["slug"].(string), args["title"].(string), args["markdown"].(string), args["html"].(string), args["primaryAuthorId"].(string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string)), true
+		return e.complexity.Mutation.CreatePost(childComplexity, args["authors"].([]string), args["commentable"].(*bool), args["excerpt"].(*string), args["featured"].(*bool), args["html"].(string), args["image"].(*string), args["metaTitle"].(*string), args["metaDescription"].(*string), args["markdown"].(string), args["primaryAuthorId"].(string), args["publishedBy"].(*string), args["publishedAt"].(*string), args["paged"].(*bool), args["slug"].(string), args["status"].(*string), args["tags"].([]string), args["title"].(string)), true
 
 	case "Mutation.createRole":
 		if e.complexity.Mutation.CreateRole == nil {
@@ -640,7 +661,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.UpdatePost(childComplexity, args["id"].(string), args["slug"].(*string), args["title"].(*string), args["markdown"].(*string), args["html"].(*string), args["primaryAuthorId"].(*string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string)), true
+		return e.complexity.Mutation.UpdatePost(childComplexity, args["authors"].([]string), args["commentable"].(*bool), args["excerpt"].(*string), args["featured"].(*bool), args["html"].(*string), args["id"].(string), args["image"].(*string), args["markdown"].(*string), args["metaTitle"].(*string), args["metaDescription"].(*string), args["paged"].(*bool), args["primaryAuthorId"].(*string), args["publishedBy"].(*string), args["publishedAt"].(*string), args["slug"].(*string), args["status"].(*string), args["tags"].([]string), args["title"].(*string)), true
 
 	case "Mutation.updateRole":
 		if e.complexity.Mutation.UpdateRole == nil {
@@ -751,12 +772,33 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.AuthorConnection(childComplexity, args["page"].(*int), args["per_page"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
+	case "Post.commentable":
+		if e.complexity.Post.Commentable == nil {
+			break
+		}
+
+		return e.complexity.Post.Commentable(childComplexity), true
+
 	case "Post.createAt":
 		if e.complexity.Post.CreateAt == nil {
 			break
 		}
 
 		return e.complexity.Post.CreateAt(childComplexity), true
+
+	case "Post.excerpt":
+		if e.complexity.Post.Excerpt == nil {
+			break
+		}
+
+		return e.complexity.Post.Excerpt(childComplexity), true
+
+	case "Post.featured":
+		if e.complexity.Post.Featured == nil {
+			break
+		}
+
+		return e.complexity.Post.Featured(childComplexity), true
 
 	case "Post.html":
 		if e.complexity.Post.HTML == nil {
@@ -772,6 +814,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.ID(childComplexity), true
 
+	case "Post.image":
+		if e.complexity.Post.Image == nil {
+			break
+		}
+
+		return e.complexity.Post.Image(childComplexity), true
+
 	case "Post.markdown":
 		if e.complexity.Post.Markdown == nil {
 			break
@@ -779,12 +828,47 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 
 		return e.complexity.Post.Markdown(childComplexity), true
 
+	case "Post.metaDescription":
+		if e.complexity.Post.MetaDescription == nil {
+			break
+		}
+
+		return e.complexity.Post.MetaDescription(childComplexity), true
+
+	case "Post.metaTitle":
+		if e.complexity.Post.MetaTitle == nil {
+			break
+		}
+
+		return e.complexity.Post.MetaTitle(childComplexity), true
+
+	case "Post.paged":
+		if e.complexity.Post.Paged == nil {
+			break
+		}
+
+		return e.complexity.Post.Paged(childComplexity), true
+
 	case "Post.primaryAuthor":
 		if e.complexity.Post.PrimaryAuthor == nil {
 			break
 		}
 
 		return e.complexity.Post.PrimaryAuthor(childComplexity), true
+
+	case "Post.publishedAt":
+		if e.complexity.Post.PublishedAt == nil {
+			break
+		}
+
+		return e.complexity.Post.PublishedAt(childComplexity), true
+
+	case "Post.publishedBy":
+		if e.complexity.Post.PublishedBy == nil {
+			break
+		}
+
+		return e.complexity.Post.PublishedBy(childComplexity), true
 
 	case "Post.slug":
 		if e.complexity.Post.Slug == nil {
@@ -941,7 +1025,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Query.AllPosts(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
+		return e.complexity.Query.AllPosts(childComplexity, args["page"].(*int), args["perPage"].(*int), args["paged"].(*bool), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string)), true
 
 	case "Query.allRoles":
 		if e.complexity.Query.AllRoles == nil {
@@ -1038,6 +1122,13 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.Query.Setting(childComplexity, args["id"].(*string), args["key"].(*string)), true
+
+	case "Query.systemStatus":
+		if e.complexity.Query.SystemStatus == nil {
+			break
+		}
+
+		return e.complexity.Query.SystemStatus(childComplexity), true
 
 	case "Query.tag":
 		if e.complexity.Query.Tag == nil {
@@ -1249,6 +1340,34 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.SettingsEdge.Node(childComplexity), true
+
+	case "SysStatus.Arch":
+		if e.complexity.SysStatus.Arch == nil {
+			break
+		}
+
+		return e.complexity.SysStatus.Arch(childComplexity), true
+
+	case "SysStatus.NumCPU":
+		if e.complexity.SysStatus.NumCPU == nil {
+			break
+		}
+
+		return e.complexity.SysStatus.NumCPU(childComplexity), true
+
+	case "SysStatus.Os":
+		if e.complexity.SysStatus.Os == nil {
+			break
+		}
+
+		return e.complexity.SysStatus.Os(childComplexity), true
+
+	case "SysStatus.Version":
+		if e.complexity.SysStatus.Version == nil {
+			break
+		}
+
+		return e.complexity.SysStatus.Version(childComplexity), true
 
 	case "Tag.createAt":
 		if e.complexity.Tag.CreateAt == nil {
@@ -1688,38 +1807,44 @@ type JWT {
 
   # post
   createPost(
-    slug: String!
-    title: String!
-    markdown: String!
-    html: String!
-    primaryAuthorId: ID!
-    tags: [String!]
     authors: [ID!]
+    commentable: Boolean
     excerpt: String
-    fetured: Boolean
-    paged: Boolean
-    publishedBy: Date
+    featured: Boolean
+    html: String!
     image: String
-    language: String
+    metaTitle: String
+    metaDescription: String
+    markdown: String!
+    primaryAuthorId: ID!
+    publishedBy: ID
+    publishedAt: Date
+    paged: Boolean
+    slug: String!
     status: String
+    tags: [String!]
+    title: String!
   ): Post! @hasLogin
   deletePost(id: ID!): Boolean! @hasLogin
   updatePost(
-    id: ID!
-    slug: String
-    title: String
-    markdown: String
-    html: String
-    primaryAuthorId: ID
-    tags: [String!]
     authors: [ID!]
+    commentable: Boolean
     excerpt: String
-    fetured: Boolean
-    paged: Boolean
-    publishedBy: Date
+    featured: Boolean
+    html: String
+    id: ID!
     image: String
-    language: String
+    markdown: String
+    metaTitle: String
+    metaDescription: String
+    paged: Boolean
+    primaryAuthorId: ID
+    publishedBy: ID
+    publishedAt: Date
+    slug: String
     status: String
+    tags: [ID!]
+    title: String
   ): Post! @hasLogin
 }
 `, BuiltIn: false},
@@ -1753,11 +1878,20 @@ interface Node {
   id: ID!
   updateAt: Date!
   createAt: Date!
+  slug: String!
   title: String!
   html: String!
   markdown: String!
-  slug: String!
+  excerpt: String!
+  featured: Boolean!
+  paged: Boolean!
   status: String!
+  image: String!
+  metaTitle: String!
+  metaDescription: String!
+  publishedAt: Date!
+  publishedBy: ID!
+  commentable: Boolean!
   tagConnection(
     page: Int
     per_page: Int
@@ -1824,6 +1958,8 @@ input InputPost {
 type Query @hasLogin {
   node(id: ID!): Node @deprecated(reason: "not implement yet")
 
+  systemStatus: SysStatus
+
   setting(id: ID, key: String): Setting
 
   role(id: ID, name: String): Role
@@ -1875,6 +2011,7 @@ type Query @hasLogin {
   allPosts(
     page: Int = 1
     perPage: Int = 10
+    paged: Boolean
     first: Int
     last: Int
     after: String
@@ -1938,6 +2075,13 @@ directive @hasLogin on OBJECT | FIELD_DEFINITION
 
 "The ` + "`" + `@hasRole` + "`" + ` directive type represents it needs the user has a specific role"
 directive @hasRole(role: String!) on FIELD_DEFINITION
+
+type SysStatus {
+  Arch: String!
+  Os: String!
+  Version: String!
+  NumCPU: Int!
+}
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/setting.graphql", Input: `"The ` + "`" + `Setting` + "`" + ` type, represents the response of system setting item."
 type Setting implements Node {
@@ -2131,118 +2275,142 @@ func (ec *executionContext) field_Mutation_auth_args(ctx context.Context, rawArg
 func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["slug"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["slug"] = arg0
-	var arg1 string
-	if tmp, ok := rawArgs["title"]; ok {
-		arg1, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["title"] = arg1
-	var arg2 string
-	if tmp, ok := rawArgs["markdown"]; ok {
-		arg2, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["markdown"] = arg2
-	var arg3 string
-	if tmp, ok := rawArgs["html"]; ok {
-		arg3, err = ec.unmarshalNString2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["html"] = arg3
-	var arg4 string
-	if tmp, ok := rawArgs["primaryAuthorId"]; ok {
-		arg4, err = ec.unmarshalNID2string(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["primaryAuthorId"] = arg4
-	var arg5 []string
-	if tmp, ok := rawArgs["tags"]; ok {
-		arg5, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
-		if err != nil {
-			return nil, err
-		}
-	}
-	args["tags"] = arg5
-	var arg6 []string
+	var arg0 []string
 	if tmp, ok := rawArgs["authors"]; ok {
-		arg6, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
+		arg0, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["authors"] = arg6
-	var arg7 *string
+	args["authors"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["commentable"]; ok {
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["commentable"] = arg1
+	var arg2 *string
 	if tmp, ok := rawArgs["excerpt"]; ok {
+		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["excerpt"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["featured"]; ok {
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["featured"] = arg3
+	var arg4 string
+	if tmp, ok := rawArgs["html"]; ok {
+		arg4, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["html"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["image"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["image"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["metaTitle"]; ok {
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["metaTitle"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["metaDescription"]; ok {
 		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["excerpt"] = arg7
-	var arg8 *bool
-	if tmp, ok := rawArgs["fetured"]; ok {
-		arg8, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	args["metaDescription"] = arg7
+	var arg8 string
+	if tmp, ok := rawArgs["markdown"]; ok {
+		arg8, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["fetured"] = arg8
-	var arg9 *bool
-	if tmp, ok := rawArgs["paged"]; ok {
-		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	args["markdown"] = arg8
+	var arg9 string
+	if tmp, ok := rawArgs["primaryAuthorId"]; ok {
+		arg9, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["paged"] = arg9
+	args["primaryAuthorId"] = arg9
 	var arg10 *string
 	if tmp, ok := rawArgs["publishedBy"]; ok {
-		arg10, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
+		arg10, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
 	args["publishedBy"] = arg10
 	var arg11 *string
-	if tmp, ok := rawArgs["image"]; ok {
-		arg11, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["publishedAt"]; ok {
+		arg11, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["image"] = arg11
-	var arg12 *string
-	if tmp, ok := rawArgs["language"]; ok {
-		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["publishedAt"] = arg11
+	var arg12 *bool
+	if tmp, ok := rawArgs["paged"]; ok {
+		arg12, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["language"] = arg12
-	var arg13 *string
+	args["paged"] = arg12
+	var arg13 string
+	if tmp, ok := rawArgs["slug"]; ok {
+		arg13, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["slug"] = arg13
+	var arg14 *string
 	if tmp, ok := rawArgs["status"]; ok {
-		arg13, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		arg14, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["status"] = arg13
+	args["status"] = arg14
+	var arg15 []string
+	if tmp, ok := rawArgs["tags"]; ok {
+		arg15, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg15
+	var arg16 string
+	if tmp, ok := rawArgs["title"]; ok {
+		arg16, err = ec.unmarshalNString2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["title"] = arg16
 	return args, nil
 }
 
@@ -2479,38 +2647,38 @@ func (ec *executionContext) field_Mutation_singleUpload_args(ctx context.Context
 func (ec *executionContext) field_Mutation_updatePost_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
 	var err error
 	args := map[string]interface{}{}
-	var arg0 string
-	if tmp, ok := rawArgs["id"]; ok {
-		arg0, err = ec.unmarshalNID2string(ctx, tmp)
+	var arg0 []string
+	if tmp, ok := rawArgs["authors"]; ok {
+		arg0, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["id"] = arg0
-	var arg1 *string
-	if tmp, ok := rawArgs["slug"]; ok {
-		arg1, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["authors"] = arg0
+	var arg1 *bool
+	if tmp, ok := rawArgs["commentable"]; ok {
+		arg1, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["slug"] = arg1
+	args["commentable"] = arg1
 	var arg2 *string
-	if tmp, ok := rawArgs["title"]; ok {
+	if tmp, ok := rawArgs["excerpt"]; ok {
 		arg2, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["title"] = arg2
-	var arg3 *string
-	if tmp, ok := rawArgs["markdown"]; ok {
-		arg3, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["excerpt"] = arg2
+	var arg3 *bool
+	if tmp, ok := rawArgs["featured"]; ok {
+		arg3, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["markdown"] = arg3
+	args["featured"] = arg3
 	var arg4 *string
 	if tmp, ok := rawArgs["html"]; ok {
 		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
@@ -2519,46 +2687,46 @@ func (ec *executionContext) field_Mutation_updatePost_args(ctx context.Context, 
 		}
 	}
 	args["html"] = arg4
-	var arg5 *string
-	if tmp, ok := rawArgs["primaryAuthorId"]; ok {
-		arg5, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+	var arg5 string
+	if tmp, ok := rawArgs["id"]; ok {
+		arg5, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["primaryAuthorId"] = arg5
-	var arg6 []string
-	if tmp, ok := rawArgs["tags"]; ok {
-		arg6, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+	args["id"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["image"]; ok {
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["tags"] = arg6
-	var arg7 []string
-	if tmp, ok := rawArgs["authors"]; ok {
-		arg7, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
+	args["image"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["markdown"]; ok {
+		arg7, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["authors"] = arg7
+	args["markdown"] = arg7
 	var arg8 *string
-	if tmp, ok := rawArgs["excerpt"]; ok {
+	if tmp, ok := rawArgs["metaTitle"]; ok {
 		arg8, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["excerpt"] = arg8
-	var arg9 *bool
-	if tmp, ok := rawArgs["fetured"]; ok {
-		arg9, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
+	args["metaTitle"] = arg8
+	var arg9 *string
+	if tmp, ok := rawArgs["metaDescription"]; ok {
+		arg9, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["fetured"] = arg9
+	args["metaDescription"] = arg9
 	var arg10 *bool
 	if tmp, ok := rawArgs["paged"]; ok {
 		arg10, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
@@ -2568,37 +2736,61 @@ func (ec *executionContext) field_Mutation_updatePost_args(ctx context.Context, 
 	}
 	args["paged"] = arg10
 	var arg11 *string
-	if tmp, ok := rawArgs["publishedBy"]; ok {
-		arg11, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["primaryAuthorId"]; ok {
+		arg11, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["publishedBy"] = arg11
+	args["primaryAuthorId"] = arg11
 	var arg12 *string
-	if tmp, ok := rawArgs["image"]; ok {
-		arg12, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["publishedBy"]; ok {
+		arg12, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["image"] = arg12
+	args["publishedBy"] = arg12
 	var arg13 *string
-	if tmp, ok := rawArgs["language"]; ok {
-		arg13, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	if tmp, ok := rawArgs["publishedAt"]; ok {
+		arg13, err = ec.unmarshalODate2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["language"] = arg13
+	args["publishedAt"] = arg13
 	var arg14 *string
-	if tmp, ok := rawArgs["status"]; ok {
+	if tmp, ok := rawArgs["slug"]; ok {
 		arg14, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["status"] = arg14
+	args["slug"] = arg14
+	var arg15 *string
+	if tmp, ok := rawArgs["status"]; ok {
+		arg15, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["status"] = arg15
+	var arg16 []string
+	if tmp, ok := rawArgs["tags"]; ok {
+		arg16, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["tags"] = arg16
+	var arg17 *string
+	if tmp, ok := rawArgs["title"]; ok {
+		arg17, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["title"] = arg17
 	return args, nil
 }
 
@@ -2903,38 +3095,46 @@ func (ec *executionContext) field_Query_allPosts_args(ctx context.Context, rawAr
 		}
 	}
 	args["perPage"] = arg1
-	var arg2 *int
-	if tmp, ok := rawArgs["first"]; ok {
-		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+	var arg2 *bool
+	if tmp, ok := rawArgs["paged"]; ok {
+		arg2, err = ec.unmarshalOBoolean2ᚖbool(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["first"] = arg2
+	args["paged"] = arg2
 	var arg3 *int
-	if tmp, ok := rawArgs["last"]; ok {
+	if tmp, ok := rawArgs["first"]; ok {
 		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["last"] = arg3
-	var arg4 *string
-	if tmp, ok := rawArgs["after"]; ok {
-		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+	args["first"] = arg3
+	var arg4 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg4, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["after"] = arg4
+	args["last"] = arg4
 	var arg5 *string
-	if tmp, ok := rawArgs["before"]; ok {
+	if tmp, ok := rawArgs["after"]; ok {
 		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["before"] = arg5
+	args["after"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		arg6, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg6
 	return args, nil
 }
 
@@ -4943,7 +5143,7 @@ func (ec *executionContext) _Mutation_createPost(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreatePost(rctx, args["slug"].(string), args["title"].(string), args["markdown"].(string), args["html"].(string), args["primaryAuthorId"].(string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+			return ec.resolvers.Mutation().CreatePost(rctx, args["authors"].([]string), args["commentable"].(*bool), args["excerpt"].(*string), args["featured"].(*bool), args["html"].(string), args["image"].(*string), args["metaTitle"].(*string), args["metaDescription"].(*string), args["markdown"].(string), args["primaryAuthorId"].(string), args["publishedBy"].(*string), args["publishedAt"].(*string), args["paged"].(*bool), args["slug"].(string), args["status"].(*string), args["tags"].([]string), args["title"].(string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasLogin == nil {
@@ -5065,7 +5265,7 @@ func (ec *executionContext) _Mutation_updatePost(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().UpdatePost(rctx, args["id"].(string), args["slug"].(*string), args["title"].(*string), args["markdown"].(*string), args["html"].(*string), args["primaryAuthorId"].(*string), args["tags"].([]string), args["authors"].([]string), args["excerpt"].(*string), args["fetured"].(*bool), args["paged"].(*bool), args["publishedBy"].(*string), args["image"].(*string), args["language"].(*string), args["status"].(*string))
+			return ec.resolvers.Mutation().UpdatePost(rctx, args["authors"].([]string), args["commentable"].(*bool), args["excerpt"].(*string), args["featured"].(*bool), args["html"].(*string), args["id"].(string), args["image"].(*string), args["markdown"].(*string), args["metaTitle"].(*string), args["metaDescription"].(*string), args["paged"].(*bool), args["primaryAuthorId"].(*string), args["publishedBy"].(*string), args["publishedAt"].(*string), args["slug"].(*string), args["status"].(*string), args["tags"].([]string), args["title"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasLogin == nil {
@@ -5441,6 +5641,40 @@ func (ec *executionContext) _Post_createAt(ctx context.Context, field graphql.Co
 	return ec.marshalNDate2string(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Post_slug(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Slug, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Post_title(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -5543,7 +5777,7 @@ func (ec *executionContext) _Post_markdown(ctx context.Context, field graphql.Co
 	return ec.marshalNString2string(ctx, field.Selections, res)
 }
 
-func (ec *executionContext) _Post_slug(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+func (ec *executionContext) _Post_excerpt(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
 			ec.Error(ctx, ec.Recover(ctx, r))
@@ -5560,7 +5794,7 @@ func (ec *executionContext) _Post_slug(ctx context.Context, field graphql.Collec
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Slug, nil
+		return obj.Excerpt, nil
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -5575,6 +5809,74 @@ func (ec *executionContext) _Post_slug(ctx context.Context, field graphql.Collec
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_featured(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Featured, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_paged(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Paged, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Post_status(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
@@ -5609,6 +5911,210 @@ func (ec *executionContext) _Post_status(ctx context.Context, field graphql.Coll
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_image(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Image, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_metaTitle(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetaTitle, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_metaDescription(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.MetaDescription, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_publishedAt(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Post().PublishedAt(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNDate2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_publishedBy(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Post().PublishedBy(rctx, obj)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _Post_commentable(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Commentable, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(bool)
+	fc.Result = res
+	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Post_tagConnection(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
@@ -6239,6 +6745,37 @@ func (ec *executionContext) _Query_node(ctx context.Context, field graphql.Colle
 	return ec.marshalONode2golbᚋgraphᚋmodelᚐNode(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_systemStatus(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().SystemStatus(rctx)
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.SysStatus)
+	fc.Result = res
+	return ec.marshalOSysStatus2ᚖgolbᚋgraphᚋmodelᚐSysStatus(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query_setting(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -6645,7 +7182,7 @@ func (ec *executionContext) _Query_allPosts(ctx context.Context, field graphql.C
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return ec.resolvers.Query().AllPosts(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
+		return ec.resolvers.Query().AllPosts(rctx, args["page"].(*int), args["perPage"].(*int), args["paged"].(*bool), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -7575,6 +8112,142 @@ func (ec *executionContext) _SettingsEdge_cursor(ctx context.Context, field grap
 	res := resTmp.(string)
 	fc.Result = res
 	return ec.marshalNID2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SysStatus_Arch(ctx context.Context, field graphql.CollectedField, obj *model.SysStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SysStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Arch, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SysStatus_Os(ctx context.Context, field graphql.CollectedField, obj *model.SysStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SysStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Os, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SysStatus_Version(ctx context.Context, field graphql.CollectedField, obj *model.SysStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SysStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.Version, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(string)
+	fc.Result = res
+	return ec.marshalNString2string(ctx, field.Selections, res)
+}
+
+func (ec *executionContext) _SysStatus_NumCPU(ctx context.Context, field graphql.CollectedField, obj *model.SysStatus) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "SysStatus",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.NumCPU, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		if !graphql.HasFieldError(ctx, fc) {
+			ec.Errorf(ctx, "must not be null")
+		}
+		return graphql.Null
+	}
+	res := resTmp.(int)
+	fc.Result = res
+	return ec.marshalNInt2int(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Tag_id(ctx context.Context, field graphql.CollectedField, obj *models.Tag) (ret graphql.Marshaler) {
@@ -10574,6 +11247,11 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				}
 				return res
 			})
+		case "slug":
+			out.Values[i] = ec._Post_slug(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
 		case "title":
 			out.Values[i] = ec._Post_title(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
@@ -10589,13 +11267,71 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
-		case "slug":
-			out.Values[i] = ec._Post_slug(ctx, field, obj)
+		case "excerpt":
+			out.Values[i] = ec._Post_excerpt(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "featured":
+			out.Values[i] = ec._Post_featured(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "paged":
+			out.Values[i] = ec._Post_paged(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
 		case "status":
 			out.Values[i] = ec._Post_status(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "image":
+			out.Values[i] = ec._Post_image(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "metaTitle":
+			out.Values[i] = ec._Post_metaTitle(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "metaDescription":
+			out.Values[i] = ec._Post_metaDescription(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				atomic.AddUint32(&invalids, 1)
+			}
+		case "publishedAt":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_publishedAt(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "publishedBy":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Post_publishedBy(ctx, field, obj)
+				if res == graphql.Null {
+					atomic.AddUint32(&invalids, 1)
+				}
+				return res
+			})
+		case "commentable":
+			out.Values[i] = ec._Post_commentable(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
@@ -10838,6 +11574,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 					}
 				}()
 				res = ec._Query_node(ctx, field)
+				return res
+			})
+		case "systemStatus":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_systemStatus(ctx, field)
 				return res
 			})
 		case "setting":
@@ -11278,6 +12025,48 @@ func (ec *executionContext) _SettingsEdge(ctx context.Context, sel ast.Selection
 			out.Values[i] = ec._SettingsEdge_node(ctx, field, obj)
 		case "cursor":
 			out.Values[i] = ec._SettingsEdge_cursor(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		default:
+			panic("unknown field " + strconv.Quote(field.Name))
+		}
+	}
+	out.Dispatch()
+	if invalids > 0 {
+		return graphql.Null
+	}
+	return out
+}
+
+var sysStatusImplementors = []string{"SysStatus"}
+
+func (ec *executionContext) _SysStatus(ctx context.Context, sel ast.SelectionSet, obj *model.SysStatus) graphql.Marshaler {
+	fields := graphql.CollectFields(ec.OperationContext, sel, sysStatusImplementors)
+
+	out := graphql.NewFieldSet(fields)
+	var invalids uint32
+	for i, field := range fields {
+		switch field.Name {
+		case "__typename":
+			out.Values[i] = graphql.MarshalString("SysStatus")
+		case "Arch":
+			out.Values[i] = ec._SysStatus_Arch(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Os":
+			out.Values[i] = ec._SysStatus_Os(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "Version":
+			out.Values[i] = ec._SysStatus_Version(ctx, field, obj)
+			if out.Values[i] == graphql.Null {
+				invalids++
+			}
+		case "NumCPU":
+			out.Values[i] = ec._SysStatus_NumCPU(ctx, field, obj)
 			if out.Values[i] == graphql.Null {
 				invalids++
 			}
@@ -13361,6 +14150,17 @@ func (ec *executionContext) marshalOString2ᚖstring(ctx context.Context, sel as
 		return graphql.Null
 	}
 	return ec.marshalOString2string(ctx, sel, *v)
+}
+
+func (ec *executionContext) marshalOSysStatus2golbᚋgraphᚋmodelᚐSysStatus(ctx context.Context, sel ast.SelectionSet, v model.SysStatus) graphql.Marshaler {
+	return ec._SysStatus(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOSysStatus2ᚖgolbᚋgraphᚋmodelᚐSysStatus(ctx context.Context, sel ast.SelectionSet, v *model.SysStatus) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._SysStatus(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOTag2golbᚋmodelsᚐTag(ctx context.Context, sel ast.SelectionSet, v models.Tag) graphql.Marshaler {

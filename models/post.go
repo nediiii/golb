@@ -24,12 +24,13 @@ type Post struct {
 	Image           string
 	Featured        bool
 	Paged           bool
-	Status          string
+	Commentable     bool
 	Language        string
 	MetaTitle       string
 	MetaDescription string
-	PublishedAt     time.Time
-	PublishedBy     uint
+	Status          string    // 状态: 草稿/已发布/定时发布
+	PublishedAt     time.Time // 发布时间
+	PublishedBy     uint      // 发布人
 	CreateBy        uint
 	UpdateBy        uint
 }

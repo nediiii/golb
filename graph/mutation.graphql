@@ -41,37 +41,43 @@ type Mutation {
 
   # post
   createPost(
-    slug: String!
-    title: String!
-    markdown: String!
-    html: String!
-    primaryAuthorId: ID!
-    tags: [String!]
     authors: [ID!]
+    commentable: Boolean
     excerpt: String
-    fetured: Boolean
-    paged: Boolean
-    publishedBy: Date
+    featured: Boolean
+    html: String!
     image: String
-    language: String
+    metaTitle: String
+    metaDescription: String
+    markdown: String!
+    primaryAuthorId: ID!
+    publishedBy: ID
+    publishedAt: Date
+    paged: Boolean
+    slug: String!
     status: String
+    tags: [String!]
+    title: String!
   ): Post! @hasLogin
   deletePost(id: ID!): Boolean! @hasLogin
   updatePost(
-    id: ID!
-    slug: String
-    title: String
-    markdown: String
-    html: String
-    primaryAuthorId: ID
-    tags: [String!]
     authors: [ID!]
+    commentable: Boolean
     excerpt: String
-    fetured: Boolean
-    paged: Boolean
-    publishedBy: Date
+    featured: Boolean
+    html: String
+    id: ID!
     image: String
-    language: String
+    markdown: String
+    metaTitle: String
+    metaDescription: String
+    paged: Boolean
+    primaryAuthorId: ID
+    publishedBy: ID
+    publishedAt: Date
+    slug: String
     status: String
+    tags: [ID!]
+    title: String
   ): Post! @hasLogin
 }

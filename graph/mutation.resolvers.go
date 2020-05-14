@@ -257,24 +257,29 @@ func (r *mutationResolver) UpdateUser(ctx context.Context, id string, slug *stri
 	}
 
 	if oldPassword != nil || newPassword != nil {
-		if oldPassword != nil && newPassword != nil {
-			if len(*newPassword) < 8 {
-				return nil, errors.New("新密码长度不合规,请确认后重试")
-			}
-			if !utils.IsCorrect(obj.Password, *oldPassword) {
-				return nil, errors.New("旧密码错误, 请确认后重试")
-			}
-			obj.Password = *newPassword
-		} else {
+		if oldPassword == nil || newPassword == nil {
 			return nil, errors.New("`oldPassword`和`newPassword`必须同时存在或者同时不存在")
 		}
+		if len(*newPassword) < 8 || len(*newPassword) > 64 {
+			return nil, errors.New("新密码长度不合规,请确认后重试")
+		}
+		if !utils.IsCorrect(obj.Password, *oldPassword) {
+			return nil, errors.New("旧密码错误, 请确认后重试")
+		}
+		obj.Password = *newPassword
 	}
 
 	if slug != nil {
 		obj.Slug = *slug
 	}
+	if email != nil {
+		obj.Email = *email
+	}
 	if name != nil {
 		obj.Name = *name
+	}
+	if bio != nil {
+		obj.Bio = *bio
 	}
 
 	var err gorm.Errors
@@ -335,13 +340,39 @@ func (r *mutationResolver) UpdateTag(ctx context.Context, id string, slug *strin
 	return obj, nil
 }
 
-func (r *mutationResolver) CreatePost(ctx context.Context, slug string, title string, markdown string, html string, primaryAuthorID string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error) {
+func (r *mutationResolver) CreatePost(ctx context.Context, authors []string, commentable *bool, excerpt *string, featured *bool, html string, image *string, metaTitle *string, metaDescription *string, markdown string, primaryAuthorID string, publishedBy *string, publishedAt *string, paged *bool, slug string, status *string, tags []string, title string) (*models.Post, error) {
 	obj := &models.Post{}
 
 	obj.Slug = slug
 	obj.Title = title
 	obj.Markdown = markdown
 	obj.HTML = html
+	// TODO primaryAuthorID authors tags
+	if excerpt != nil {
+		obj.Excerpt = *excerpt
+	}
+	if featured != nil {
+		obj.Featured = *featured
+	}
+	if paged != nil {
+		obj.Paged = *paged
+	}
+	if commentable != nil {
+		obj.Commentable = *commentable
+	}
+	// TODO publishedBy publishedAt
+	if image != nil {
+		obj.Image = *image
+	}
+	if metaTitle != nil {
+		obj.MetaTitle = *metaTitle
+	}
+	if metaDescription != nil {
+		obj.MetaDescription = *metaDescription
+	}
+	if status != nil {
+		obj.Status = *status
+	}
 
 	var err gorm.Errors
 	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
@@ -360,7 +391,7 @@ func (r *mutationResolver) DeletePost(ctx context.Context, id string) (bool, err
 	return true, nil
 }
 
-func (r *mutationResolver) UpdatePost(ctx context.Context, id string, slug *string, title *string, markdown *string, html *string, primaryAuthorID *string, tags []string, authors []string, excerpt *string, fetured *bool, paged *bool, publishedBy *string, image *string, language *string, status *string) (*models.Post, error) {
+func (r *mutationResolver) UpdatePost(ctx context.Context, authors []string, commentable *bool, excerpt *string, featured *bool, html *string, id string, image *string, markdown *string, metaTitle *string, metaDescription *string, paged *bool, primaryAuthorID *string, publishedBy *string, publishedAt *string, slug *string, status *string, tags []string, title *string) (*models.Post, error) {
 	obj := &models.Post{}
 
 	tx := services.DB
@@ -374,11 +405,40 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, id string, slug *stri
 	if title != nil {
 		obj.Title = *title
 	}
+	if markdown != nil {
+		obj.Markdown = *markdown
+	}
 	if html != nil {
 		obj.HTML = *html
 	}
-	if markdown != nil {
-		obj.Markdown = *markdown
+	// TODO  authors tags
+	if primaryAuthorID != nil {
+		obj.PrimaryAuthorID = utils.String2Uint(*primaryAuthorID)
+	}
+	if excerpt != nil {
+		obj.Excerpt = *excerpt
+	}
+	if featured != nil {
+		obj.Featured = *featured
+	}
+	if paged != nil {
+		obj.Paged = *paged
+	}
+	if commentable != nil {
+		obj.Commentable = *commentable
+	}
+	// TODO publishedBy publishedAt
+	if image != nil {
+		obj.Image = *image
+	}
+	if metaTitle != nil {
+		obj.MetaTitle = *metaTitle
+	}
+	if metaDescription != nil {
+		obj.MetaDescription = *metaDescription
+	}
+	if status != nil {
+		obj.Status = *status
 	}
 
 	var err gorm.Errors

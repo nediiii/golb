@@ -25,7 +25,7 @@ func GenerateClaims(slug string, id uint) *jwt.StandardClaims {
 	claims := &jwt.StandardClaims{
 		Audience:  slug,                             // aud 受众
 		ExpiresAt: now.Add(time.Minute * 15).Unix(), // exp 失效时间
-		Id:        Uint2string(id),                  // jti 编号
+		Id:        Uint2String(id),                  // jti 编号
 		IssuedAt:  now.Unix(),                       // iat 签发时间
 		Issuer:    "golb.sys",                       // iss 签发人
 		NotBefore: now.Unix(),                       // nbf 生效时间

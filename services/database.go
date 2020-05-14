@@ -6,8 +6,9 @@ import (
 	"golb/configs"
 	"golb/models"
 
+	"log"
+
 	"github.com/jinzhu/gorm"
-	"github.com/prometheus/common/log"
 
 	// postgres
 	_ "github.com/jinzhu/gorm/dialects/postgres"
@@ -64,7 +65,7 @@ func initData() {
 
 	// init users data
 	for _, u := range models.PreDefinedUsers {
-		err := DB.Unscoped().Where(models.User{Name: u.Name}).FirstOrCreate(&u).GetErrors()
+		err := DB.Unscoped().Where(models.User{Slug: u.Slug}).FirstOrCreate(&u).GetErrors()
 		for _, e := range err {
 			log.Fatal(e.Error())
 		}

@@ -47,12 +47,22 @@ func (v *User) BeforeCreate(scope *gorm.Scope) error {
 
 // BeforeSave 初始化uuid
 func (v *User) BeforeSave(scope *gorm.Scope) error {
-	if pwdLen := len(v.Password); pwdLen >= 8 {
+	// 经过bcrypt的密码长度为120 -> 不再进行bcrypt,不需要操作
+	// 允许的密码长度为8到64 -> 进行bcrypt后存入
+	// 不允许其他长度的密码 -> 拒绝操作,抛出错误
+	log.Println("BeforeSave trigger")
+	passwordLen := len(v.Password)
+	if passwordLen >= 8 && passwordLen <= 64 {
+		log.Println("BeforeSave trigger:", "operate to hash the password")
 		scope.SetColumn("Password", utils.Hash(v.Password))
-		log.Println("user save ", utils.Hash(v.Password))
-		return nil
+	} else if passwordLen == 120 {
+		log.Println("BeforeSave trigger:", "no operate need")
+		// nothing to do
+	} else {
+		log.Println("BeforeSave trigger:", "password length wrong")
+		return errors.New("password length invalid")
 	}
-	return errors.New("password length should longer than 8 characters")
+	return nil
 }
 
 // PreDefinedUsers PreDefinedUsers
