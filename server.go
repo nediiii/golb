@@ -2,7 +2,6 @@ package main
 
 import (
 	"context"
-	"log"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -16,9 +15,10 @@ import (
 	"golb/graph"
 	"golb/graph/generated"
 	"golb/middlewares"
+	"golb/services"
 )
 
-func main() {
+func ginSetup() *gin.Engine {
 	r := gin.Default()
 	r.Use(gin.Logger())
 	r.Use(gin.Recovery())
@@ -32,7 +32,12 @@ func main() {
 
 	r.POST("/query", graphqlHandler())
 	r.GET("/", playgroundHandler())
-	log.Println("[info] visit http://0.0.0.0:8090")
+	return r
+}
+
+func main() {
+	services.InitDatabase()
+	r := ginSetup()
 	r.Run(":8090")
 }
 

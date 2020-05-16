@@ -8,8 +8,10 @@ import (
 	"crypto/sha256"
 	"encoding/hex"
 	"errors"
+	"fmt"
 	"golb/graph/generated"
 	"golb/graph/model"
+	"golb/middlewares"
 	"golb/models"
 	"golb/services"
 	"golb/utils"
@@ -446,6 +448,35 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, authors []string, com
 		return nil, err
 	}
 	return obj, nil
+}
+
+func (r *mutationResolver) CreateComment(ctx context.Context, nickname string, email string, target string, content string, postID string, parentID string) (*models.Comment, error) {
+	obj := &models.Comment{}
+
+	obj.Nickname = nickname
+	obj.Email = email
+	obj.Target = target
+	obj.Content = content
+	obj.PostID = utils.String2Uint(postID)
+	obj.ParentID = utils.String2Uint(parentID)
+
+	ginContext := middlewares.GetGinContextFromContext(ctx)
+	obj.IP = ginContext.ClientIP()
+	obj.Agent = ginContext.Request.Header.Get("User-Agent")
+
+	var err gorm.Errors
+	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+		return nil, err
+	}
+	return obj, nil
+}
+
+func (r *mutationResolver) DeleteComment(ctx context.Context, id string) (bool, error) {
+	panic(fmt.Errorf("not implemented"))
+}
+
+func (r *mutationResolver) UpdateComment(ctx context.Context, id string) (*models.Comment, error) {
+	panic(fmt.Errorf("not implemented"))
 }
 
 // Mutation returns generated.MutationResolver implementation.

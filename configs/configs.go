@@ -3,7 +3,6 @@ package configs
 import (
 	"log"
 	"os"
-	"strings"
 
 	"github.com/spf13/viper"
 )
@@ -23,12 +22,9 @@ func init() {
 }
 
 func readConfigFile() {
-	// determine whether run under test
-	if strings.HasSuffix(os.Args[0], ".test") {
-		viper.AddConfigPath("../")
-	} else {
-		viper.AddConfigPath("./")
-	}
+	// make sure when testing it can find the config file
+	viper.AddConfigPath("./")
+	viper.AddConfigPath("../")
 
 	viper.SetConfigType("yaml")
 
@@ -41,7 +37,7 @@ func readConfigFile() {
 	if err := viper.ReadInConfig(); err != nil {
 		if _, ok := err.(viper.ConfigFileNotFoundError); ok {
 			// Config file not found; ignore error if desired
-			log.Fatal(err, "config file not exist!")
+			log.Fatal(err, "config file not exist!(if you are running test, make sure you run it in project base path,like `golb`)")
 		} else {
 			// Config file was found but another error was produced
 			log.Fatal(err, "could not read config file")

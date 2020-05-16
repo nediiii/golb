@@ -64,3 +64,5 @@ models:
     model: golb/models.Tag
   Post:
     model: golb/models.Post
+  Comment:
+    model: golb/models.Comment

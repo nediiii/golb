@@ -14,12 +14,13 @@ import (
 // User user model
 type User struct {
 	gorm.Model
-	Roles           []*Role   `gorm:"many2many:user_roles"`
 	Posts           []*Post   `gorm:"many2many:user_posts"`
+	Role            *Role     `gorm:"foreignkey:RoleID"` // Belongs to: `User` Belong to one `Role` , The ForeignKey define in `User`
 	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`
 	Slug            string    `gorm:"unique_index;not null"`
 	Name            string    `gorm:"not null"`
 	Password        string    `gorm:"not null"`
+	RoleID          uint
 	Email           string
 	Image           string
 	Cover           string
@@ -67,6 +68,9 @@ func (v *User) BeforeSave(scope *gorm.Scope) error {
 
 // PreDefinedUsers PreDefinedUsers
 var PreDefinedUsers = []*User{
-	{Name: "owner", Slug: "owner", Password: "rootroot", Roles: PreDefinedRoles},
-	{Name: "admin", Slug: "admin", Password: "adminadmin", Roles: PreDefinedRoles[1:]},
+	{Name: "owner", Slug: "owner", Password: "adminadmin", RoleID: 1},
+	{Name: "admin", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[1]},
+	{Name: "editor", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[2]},
+	{Name: "author", Slug: "admin", Password: "adminadmin", RoleID: 4},
+	{Name: "contributer", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[4]},
 }

@@ -3,13 +3,38 @@
 package model
 
 import (
+	"fmt"
 	"golb/models"
+	"io"
+	"strconv"
 
 	"github.com/99designs/gqlgen/graphql"
 )
 
 type Node interface {
 	IsNode()
+}
+
+type CommentRepliesConnection struct {
+	PageInfo *PageInfo             `json:"pageInfo"`
+	Edges    []*CommentRepliesEdge `json:"edges"`
+	Replies  []*models.Comment     `json:"replies"`
+}
+
+type CommentRepliesEdge struct {
+	Node   *models.Comment `json:"node"`
+	Cursor string          `json:"cursor"`
+}
+
+type CommentsConnection struct {
+	PageInfo *PageInfo         `json:"pageInfo"`
+	Edges    []*CommentsEdge   `json:"edges"`
+	Comments []*models.Comment `json:"comments"`
+}
+
+type CommentsEdge struct {
+	Node   *models.Comment `json:"node"`
+	Cursor string          `json:"cursor"`
 }
 
 // A type that is returned in list form by a connection type’s edges field is considered by this spec to be an Edge Type. Edge types must be an “Object” as defined in the “Type System” section of the GraphQL Specification.
@@ -39,12 +64,6 @@ type InputPost struct {
 type InputRole struct {
 	Name        *string `json:"name"`
 	Description *string `json:"description"`
-}
-
-// The `InputSetting` type, represents the request for set a setting.
-type InputSetting struct {
-	Key   *string `json:"key"`
-	Value *string `json:"value"`
 }
 
 type InputTag struct {
@@ -90,6 +109,17 @@ type PostAuthorsConnection struct {
 type PostAuthorsEdge struct {
 	Node   *models.User `json:"node"`
 	Cursor string       `json:"cursor"`
+}
+
+type PostCommentsConnection struct {
+	PageInfo *PageInfo           `json:"pageInfo"`
+	Edges    []*PostCommentsEdge `json:"edges"`
+	Comments []*models.Comment   `json:"comments"`
+}
+
+type PostCommentsEdge struct {
+	Node   *models.Comment `json:"node"`
+	Cursor string          `json:"cursor"`
 }
 
 type PostTagsConnection struct {
@@ -213,4 +243,49 @@ type UsersConnection struct {
 type UsersEdge struct {
 	Node   *models.User `json:"node"`
 	Cursor string       `json:"cursor"`
+}
+
+type PostStatus string
+
+const (
+	PostStatusDraft       PostStatus = "Draft"
+	PostStatusScheduled   PostStatus = "Scheduled"
+	PostStatusPublished   PostStatus = "Published"
+	PostStatusUnPublished PostStatus = "UnPublished"
+)
+
+var AllPostStatus = []PostStatus{
+	PostStatusDraft,
+	PostStatusScheduled,
+	PostStatusPublished,
+	PostStatusUnPublished,
+}
+
+func (e PostStatus) IsValid() bool {
+	switch e {
+	case PostStatusDraft, PostStatusScheduled, PostStatusPublished, PostStatusUnPublished:
+		return true
+	}
+	return false
+}
+
+func (e PostStatus) String() string {
+	return string(e)
+}
+
+func (e *PostStatus) UnmarshalGQL(v interface{}) error {
+	str, ok := v.(string)
+	if !ok {
+		return fmt.Errorf("enums must be strings")
+	}
+
+	*e = PostStatus(str)
+	if !e.IsValid() {
+		return fmt.Errorf("%s is not a valid PostStatus", str)
+	}
+	return nil
+}
+
+func (e PostStatus) MarshalGQL(w io.Writer) {
+	fmt.Fprint(w, strconv.Quote(e.String()))
 }

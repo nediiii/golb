@@ -24,13 +24,6 @@ func (r *userResolver) CreateAt(ctx context.Context, obj *models.User) (string, 
 	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
 }
 
-func (r *userResolver) RoleConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserRolesConnection, error) {
-	list, _ := middlewares.GetDataloaderFromContext(ctx).UserRolesLoader.Load(obj.ID)
-	v := &model.UserRolesConnection{}
-	v.Roles = list
-	return v, nil
-}
-
 func (r *userResolver) PostConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error) {
 	list, _ := middlewares.GetDataloaderFromContext(ctx).UserPostsLoader.Load(obj.ID)
 	v := &model.UserPostsConnection{}

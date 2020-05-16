@@ -1,7 +1,6 @@
 version: "3.7"
 
 services:
-  # https://hub.docker.com/_/postgres
   db:
     image: "postgres:12-alpine"
     restart: "always"
@@ -13,10 +12,3 @@ services:
       POSTGRES_DB: golbat
       POSTGRES_USER: golbat
       POSTGRES_PASSWORD: golbat
-  # adminer:
-  #   image: adminer
-  #   restart: always
-  #   ports:
-  #     - 2345:8080
-# volumes:
-# postgres-data:

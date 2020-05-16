@@ -10,7 +10,6 @@ import (
 	"golb/utils"
 
 	"github.com/99designs/gqlgen/graphql"
-	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/jinzhu/gorm"
 )
 
@@ -45,22 +44,7 @@ func HasLoginFn(ctx context.Context, obj interface{}, next graphql.Resolver) (re
 func HasRoleFn(ctx context.Context, obj interface{}, next graphql.Resolver, role string) (res interface{}, err error) {
 	fmt.Println("HasRoleFn被触发")
 
-	ginContext := middlewares.GetGinContextFromContext(ctx)
-	token := ginContext.Request.Header.Get("Authorization")
-	parseToken, err := jwt.Parse(token, func(tk *jwt.Token) (interface{}, error) {
-		var jwtKey = []byte("golb.sys.jwt.key")
-		if _, ok := tk.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("Unexpected signing method: %v", tk.Header["alg"])
-		}
-		return jwtKey, nil
-	})
-	if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
-		fmt.Println(claims["exp"], claims["iss"])
-		fmt.Println("valid: ", parseToken.Valid)
-		// aud exp jti iat iss nbf sub
-		return next(ctx)
-	}
-	return nil, errors.New("token invalid")
+	return next(ctx)
 }
 
 // [[FUNCTION FOR DIRECTIVE--]]

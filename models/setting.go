@@ -1,6 +1,8 @@
 package models
 
 import (
+	"time"
+
 	"github.com/google/uuid"
 	"github.com/jinzhu/gorm"
 )
@@ -8,12 +10,12 @@ import (
 // Setting 系统配置
 type Setting struct {
 	gorm.Model
-	UUID     uuid.UUID `gorm:"type:uuid;unique_index"`
-	Key      string    `gorm:"unique_index;not null"`
-	Value    string
-	Type     string
-	CreateBy uint
-	UpdateBy uint
+	UUID        uuid.UUID `gorm:"type:uuid;unique_index"`
+	Key         string    `gorm:"unique_index;not null"`
+	Value       string
+	Description string
+	CreateBy    uint
+	UpdateBy    uint
 }
 
 // IsNode IsNode
@@ -25,14 +27,13 @@ func (v *Setting) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-// PreDefinedSettings 预设设置值
+// PreDefinedSettings predefined settings
 var PreDefinedSettings = []Setting{
-	{UUID: uuid.New(), Key: "title", Value: "My Blog"},
-	{UUID: uuid.New(), Key: "description", Value: "Yet another blog"},
-	{UUID: uuid.New(), Key: "email", Value: "blog@example.com"},
-	{UUID: uuid.New(), Key: "logo", Value: "/public/images/blog-logo.jpg"},
-	{UUID: uuid.New(), Key: "cover", Value: "/public/images/blog-cover.jpg"},
-	{UUID: uuid.New(), Key: "postPerPage", Value: "5"},
-	{UUID: uuid.New(), Key: "activeTheme", Value: "default"},
-	{UUID: uuid.New(), Key: "navigation", Value: `[{"label":"Home", "url":"/"}]`},
+	{Key: "systemInitTime", Value: time.Now().String(), Description: "first time system init"},
+	{Key: "title", Value: "My Blog", Description: "blog global title"},
+	{Key: "description", Value: "Yet another blog", Description: "blog global description"},
+	{Key: "email", Value: "blog@example.com", Description: "blog administrator email"},
+	{Key: "logo", Value: "/public/images/blog-logo.jpg", Description: "blog global logo"},
+	{Key: "cover", Value: "/public/images/blog-cover.jpg"},
+	{Key: "postPerPage", Value: "5"},
 }

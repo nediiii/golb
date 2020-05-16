@@ -3,7 +3,7 @@ site:
   secure:
     pepper: "custom.pepper.value"
     jwt:
-      enable: false # 开启jwt保护mutation操作,影响所有@hasLogin指令标记的type
+      enable: true # 开启jwt保护mutation操作,影响所有@hasLogin指令标记的type
       key: "some.secret.key"
 
 database:

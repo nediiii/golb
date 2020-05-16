@@ -5,7 +5,7 @@ scalar Upload
 scalar Date
 
 "The `@hasLogin` directive type represents it needs the user has login"
-directive @hasLogin on OBJECT | FIELD_DEFINITION
+directive @hasLogin on FIELD_DEFINITION
 
 "The `@hasRole` directive type represents it needs the user has a specific role"
 directive @hasRole(role: String!) on FIELD_DEFINITION

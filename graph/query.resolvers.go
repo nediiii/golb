@@ -74,6 +74,9 @@ func (r *queryResolver) User(ctx context.Context, id *string, slug *string, name
 	if tx.First(&v).RecordNotFound() {
 		return nil, errors.New("no record match")
 	}
+	var role models.Role
+	tx.Model(&v).Related(&role, "RoleID")
+	v.Role = &role
 	return &v, nil
 }
 

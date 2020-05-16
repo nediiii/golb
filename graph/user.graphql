@@ -8,14 +8,7 @@ type User implements Node {
   email: String
   visibility: String
   bio: String
-  roleConnection(
-    page: Int
-    per_page: Int
-    first: Int
-    last: Int
-    after: String
-    before: String
-  ): UserRolesConnection
+  role: Role
   postConnection(
     page: Int
     per_page: Int

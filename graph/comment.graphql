@@ -1,0 +1,59 @@
+type Comment implements Node {
+  id: ID!
+  updateAt: Date!
+  createAt: Date!
+
+  nickname: String!
+  email: String!
+  target: String!
+  content: String!
+  post: Post
+  parent: Comment
+
+  status: String
+  ip: String
+  domain: String
+  agent: String
+
+  replyConnection(
+    page: Int
+    per_page: Int
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): CommentRepliesConnection
+}
+
+type CommentsConnection {
+  pageInfo: PageInfo!
+  edges: [CommentsEdge!] @deprecated(reason: "not implement yet")
+  comments: [Comment!]
+}
+
+type CommentsEdge {
+  node: Comment
+  cursor: ID!
+}
+
+type PostCommentsConnection {
+  pageInfo: PageInfo!
+  edges: [PostCommentsEdge!] @deprecated(reason: "not implement yet")
+  comments: [Comment!]
+}
+
+type PostCommentsEdge {
+  node: Comment
+  cursor: ID!
+}
+
+type CommentRepliesConnection {
+  pageInfo: PageInfo!
+  edges: [CommentRepliesEdge!] @deprecated(reason: "not implement yet")
+  replies: [Comment!]
+}
+
+type CommentRepliesEdge {
+  node: Comment
+  cursor: ID!
+}

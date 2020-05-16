@@ -21,6 +21,11 @@ var DB *gorm.DB
 
 func init() {
 	establishConnection()
+	InitDatabase()
+}
+
+// InitDatabase init database table and data
+func InitDatabase() {
 	initTable()
 	initData()
 }
@@ -42,7 +47,7 @@ func establishConnection() {
 
 // init database table
 func initTable() {
-	DB.AutoMigrate(&models.Setting{}, &models.User{}, &models.Role{}, &models.Post{}, &models.Tag{})
+	DB.AutoMigrate(&models.Setting{}, &models.User{}, &models.Role{}, &models.Post{}, &models.Tag{}, &models.Comment{})
 }
 
 // init database data

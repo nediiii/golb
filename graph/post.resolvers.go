@@ -9,6 +9,7 @@ import (
 	"golb/graph/model"
 	"golb/middlewares"
 	"golb/models"
+	"golb/services"
 	"golb/utils"
 )
 
@@ -24,6 +25,10 @@ func (r *postResolver) CreateAt(ctx context.Context, obj *models.Post) (string, 
 	return utils.Time2UnixString(&obj.CreatedAt), nil
 }
 
+func (r *postResolver) Status(ctx context.Context, obj *models.Post) (model.PostStatus, error) {
+	return model.PostStatus(obj.Status), nil
+}
+
 func (r *postResolver) PublishedAt(ctx context.Context, obj *models.Post) (string, error) {
 	return utils.Time2UnixString(&obj.PublishedAt), nil
 }
@@ -36,6 +41,16 @@ func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, page
 	list, _ := middlewares.GetDataloaderFromContext(ctx).PostTagsLoader.Load(obj.ID)
 	v := &model.PostTagsConnection{}
 	v.Tags = list
+	return v, nil
+}
+
+func (r *postResolver) CommentConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostCommentsConnection, error) {
+	tx := services.DB
+	tx = tx.Order("id asc")
+	var comments []*models.Comment
+	tx.Model(obj).Related(&comments, "PostID")
+	v := &model.PostCommentsConnection{}
+	v.Comments = comments
 	return v, nil
 }
 

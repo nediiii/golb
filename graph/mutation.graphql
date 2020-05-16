@@ -80,4 +80,16 @@ type Mutation {
     tags: [ID!]
     title: String
   ): Post! @hasLogin
+
+  # comment
+  createComment(
+    nickname: String!
+    email: String!
+    target: String!
+    content: String!
+    postID: ID!
+    parentID: ID!
+  ): Comment! @hasLogin
+  deleteComment(id: ID!): Boolean! @hasLogin
+  updateComment(id: ID!): Comment! @hasLogin
 }

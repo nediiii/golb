@@ -9,7 +9,7 @@ type Post implements Node {
   excerpt: String!
   featured: Boolean!
   paged: Boolean!
-  status: String!
+  status: PostStatus!
   image: String!
   metaTitle: String!
   metaDescription: String!
@@ -24,6 +24,16 @@ type Post implements Node {
     after: String
     before: String
   ): PostTagsConnection
+
+  commentConnection(
+    page: Int
+    per_page: Int
+    first: Int
+    last: Int
+    after: String
+    before: String
+  ): PostCommentsConnection
+
   authorConnection(
     page: Int
     per_page: Int
@@ -33,6 +43,13 @@ type Post implements Node {
     before: String
   ): PostAuthorsConnection
   primaryAuthor: User
+}
+
+enum PostStatus {
+  Draft
+  Scheduled
+  Published
+  UnPublished
 }
 
 type PostsConnection {

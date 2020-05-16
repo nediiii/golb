@@ -15,7 +15,7 @@ import (
 // Role 角色
 type Role struct {
 	gorm.Model  `gorm:"embedded"`
-	Users       []*User   `gorm:"many2many:user_roles"`
+	Users       []*User   `gorm:"foreignkey:RoleID"`
 	UUID        uuid.UUID `gorm:"type:uuid;unique_index"`
 	Name        string    `gorm:"unique_index;not null"`
 	Description string
@@ -32,7 +32,7 @@ func (v *Role) BeforeCreate(scope *gorm.Scope) error {
 	return nil
 }
 
-// PreDefinedRoles 预定义的Roles
+// PreDefinedRoles should not modify
 var PreDefinedRoles = []*Role{
 	{Name: "Owner", Description: "An admin who cannot be deleted and has access to billing details"},
 	{Name: "Administrator", Description: "Have full permissions to edit all data and settings"},

@@ -11,11 +11,12 @@ import (
 // Post post model
 type Post struct {
 	gorm.Model
-	Authors         []*User   `gorm:"many2many:user_posts"`       // 所有作者, 包括第一作者
-	Tags            []*Tag    `gorm:"many2many:post_tags"`        // 标签
-	PrimaryAuthor   *User     `gorm:"foreignkey:PrimaryAuthorID"` // 第一作者
-	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`     // UUID
-	Slug            string    `gorm:"unique_index;not null"`      // Slug 对应post的实际url地址
+	Tags            []*Tag     `gorm:"many2many:post_tags"`        // 标签
+	Authors         []*User    `gorm:"many2many:user_posts"`       // 所有作者, 包括第一作者
+	PrimaryAuthor   *User      `gorm:"foreignkey:PrimaryAuthorID"` // 第一作者
+	UUID            uuid.UUID  `gorm:"type:uuid;unique_index"`     // UUID
+	Slug            string     `gorm:"unique_index;not null"`      // Slug 对应post的实际url地址
+	Comments        []*Comment `gorm:"foreignkey:PostID"`          // 评论
 	PrimaryAuthorID uint
 	Title           string
 	Excerpt         string
@@ -43,11 +44,6 @@ func (v *Post) BeforeCreate(scope *gorm.Scope) error {
 
 // IsNode IsNode
 func (v *Post) IsNode() {}
-
-// GetUpdateAt GetUpdateAt
-func (v Post) GetUpdateAt() interface{} {
-	return v.UpdatedAt
-}
 
 func newDemoPost(i int) (p *Post) {
 	p = &Post{
