@@ -13,7 +13,7 @@ type Post struct {
 	gorm.Model
 	Tags            []*Tag     `gorm:"many2many:post_tags"`        // 标签
 	Authors         []*User    `gorm:"many2many:user_posts"`       // 所有作者, 包括第一作者
-	PrimaryAuthor   *User      `gorm:"foreignkey:PrimaryAuthorID"` // 第一作者
+	PrimaryAuthor   *User      `gorm:"foreignkey:PrimaryAuthorID"` // 第一作者 // TODO delete this field, only `PrimaryAuthorID` needed
 	UUID            uuid.UUID  `gorm:"type:uuid;unique_index"`     // UUID
 	Slug            string     `gorm:"unique_index;not null"`      // Slug 对应post的实际url地址
 	Comments        []*Comment `gorm:"foreignkey:PostID"`          // 评论

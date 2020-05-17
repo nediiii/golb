@@ -15,6 +15,7 @@ type Comment struct {
 	Status   string     // 评论状态  [公开(默认)|私密(仅作者和评论双方可见)]
 	PostID   uint       // 被评论的文章ID!
 	ParentID uint       // 父级评论id
+	UserID   uint       // 博客用户评论或者回复评论时,记录下UserID,区别于游客的评论
 	Reply    []*Comment `gorm:"foreignkey:ParentID"` // 评论的回复
 }
 

@@ -64,4 +64,15 @@ type Query @hasLogin {
     after: String
     before: String
   ): PostsConnection
+
+  allComments(
+    page: Int = 1
+    perPage: Int = 10
+    first: Int
+    last: Int
+    after: String
+    before: String
+    postID: ID # postID represent a specific post's ID, the response is this post's comments
+    parentID: ID # parentID represent a specific comment's ID, the response is this comment's replies
+  ): CommentsConnection
 }

@@ -8,7 +8,7 @@ scalar Date
 directive @hasLogin on FIELD_DEFINITION
 
 "The `@hasRole` directive type represents it needs the user has a specific role"
-directive @hasRole(role: String!) on FIELD_DEFINITION
+directive @hasRole(role: ID!) on FIELD_DEFINITION
 
 type SysStatus {
   Arch: String!
@@ -16,3 +16,6 @@ type SysStatus {
   Version: String!
   NumCPU: Int!
 }
+
+"The `Token` scalar type represents a JWT toekn string"
+scalar Token

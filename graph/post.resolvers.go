@@ -46,9 +46,9 @@ func (r *postResolver) TagConnection(ctx context.Context, obj *models.Post, page
 
 func (r *postResolver) CommentConnection(ctx context.Context, obj *models.Post, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.PostCommentsConnection, error) {
 	tx := services.DB
-	tx = tx.Order("id asc")
+	tx = tx.Order("id desc")
 	var comments []*models.Comment
-	tx.Model(obj).Related(&comments, "PostID")
+	tx.Model(obj).Where("target = ?", "post").Related(&comments, "PostID")
 	v := &model.PostCommentsConnection{}
 	v.Comments = comments
 	return v, nil

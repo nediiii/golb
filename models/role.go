@@ -23,6 +23,16 @@ type Role struct {
 	UpdateBy    uint
 }
 
+// Role constant
+const (
+	RoleSys           = iota
+	RoleOwner         // full permissions,only one user. can create other administrators
+	RoleAdministrator // full permissions except operation that create owner role user or admin role user
+	RoleEditor
+	RoleAuthor      //
+	RoleContributor // only have post permission, but can not publish a post
+)
+
 // IsNode IsNode
 func (v *Role) IsNode() {}
 

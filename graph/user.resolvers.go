@@ -9,6 +9,7 @@ import (
 	"golb/graph/model"
 	"golb/middlewares"
 	"golb/models"
+	"golb/services"
 	"strconv"
 )
 
@@ -22,6 +23,12 @@ func (r *userResolver) UpdateAt(ctx context.Context, obj *models.User) (string, 
 
 func (r *userResolver) CreateAt(ctx context.Context, obj *models.User) (string, error) {
 	return strconv.FormatInt(obj.CreatedAt.Unix(), 10), nil
+}
+
+func (r *userResolver) Role(ctx context.Context, obj *models.User) (*models.Role, error) {
+	role := &models.Role{}
+	services.DB.Model(role).First(role, obj.RoleID)
+	return role, nil
 }
 
 func (r *userResolver) PostConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error) {

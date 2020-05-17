@@ -20,8 +20,6 @@ import (
 
 func ginSetup() *gin.Engine {
 	r := gin.Default()
-	r.Use(gin.Logger())
-	r.Use(gin.Recovery())
 	r.Use(cors.Default())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 

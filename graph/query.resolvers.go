@@ -74,9 +74,6 @@ func (r *queryResolver) User(ctx context.Context, id *string, slug *string, name
 	if tx.First(&v).RecordNotFound() {
 		return nil, errors.New("no record match")
 	}
-	var role models.Role
-	tx.Model(&v).Related(&role, "RoleID")
-	v.Role = &role
 	return &v, nil
 }
 
@@ -226,6 +223,33 @@ func (r *queryResolver) AllPosts(ctx context.Context, page *int, perPage *int, p
 
 	v := &model.PostsConnection{
 		Posts:    list,
+		PageInfo: pageInfo,
+	}
+	return v, nil
+}
+
+func (r *queryResolver) AllComments(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string, postID *string, parentID *string) (*model.CommentsConnection, error) {
+	tx := services.DB
+	tx = tx.Model(&models.Comment{})
+	tx = tx.Order("id desc")
+
+	if postID != nil {
+		tx = tx.Where("post_id = ?", *postID)
+	}
+	if parentID != nil {
+		tx = tx.Where("parent_id = ?", *parentID)
+	}
+
+	// paging apply to tx and genertae pageInfo
+	tx, pageInfo := paging(tx, *page, *perPage)
+
+	var list []*models.Comment
+	if tx.Find(&list).RecordNotFound() {
+		return nil, nil
+	}
+
+	v := &model.CommentsConnection{
+		Comments: list,
 		PageInfo: pageInfo,
 	}
 	return v, nil

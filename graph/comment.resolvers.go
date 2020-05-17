@@ -9,6 +9,7 @@ import (
 	"golb/graph/generated"
 	"golb/graph/model"
 	"golb/models"
+	"golb/services"
 	"golb/utils"
 )
 
@@ -33,23 +34,16 @@ func (r *commentResolver) Parent(ctx context.Context, obj *models.Comment) (*mod
 }
 
 func (r *commentResolver) ReplyConnection(ctx context.Context, obj *models.Comment, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.CommentRepliesConnection, error) {
-	panic(fmt.Errorf("not implemented"))
+	tx := services.DB
+	tx = tx.Order("id desc")
+	var comments []*models.Comment
+	tx.Model(obj).Where("parent_id = ?", obj.ID).Find(&comments)
+	v := &model.CommentRepliesConnection{}
+	v.Replies = comments
+	return v, nil
 }
 
 // Comment returns generated.CommentResolver implementation.
 func (r *Resolver) Comment() generated.CommentResolver { return &commentResolver{r} }
 
 type commentResolver struct{ *Resolver }
-
-// !!! WARNING !!!
-// The code below was going to be deleted when updating resolvers. It has been copied here so you have
-// one last chance to move it out of harms way if you want. There are two reasons this happens:
-//  - When renaming or deleting a resolver the old code will be put in here. You can safely delete
-//    it when you're done.
-//  - You have helper methods in this file. Move them out to keep these resolver files clean.
-func (r *commentResolver) PostID(ctx context.Context, obj *models.Comment) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}
-func (r *commentResolver) ParentID(ctx context.Context, obj *models.Comment) (string, error) {
-	panic(fmt.Errorf("not implemented"))
-}

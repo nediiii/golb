@@ -1,7 +1,7 @@
 type Mutation {
   # auth
   "传入username和password获取token,或者传入token来刷新token"
-  auth(username: String, password: String, token: String): JWT!
+  auth(username: String, password: String, token: String): Token!
 
   # file
   singleUpload(file: Upload!): File! @hasLogin
@@ -21,7 +21,14 @@ type Mutation {
   updateRole(id: ID!, name: String, description: String): Role! @hasLogin
 
   # user
-  createUser(slug: String!, name: String!, password: String!): User! @hasLogin
+  createUser(
+    slug: String!
+    password: String!
+    name: String!
+    role: ID!
+    email: String
+    bio: String
+  ): User! @hasLogin
   deleteUser(id: ID!): Boolean! @hasLogin
   updateUser(
     id: ID!

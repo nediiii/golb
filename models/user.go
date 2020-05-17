@@ -15,7 +15,6 @@ import (
 type User struct {
 	gorm.Model
 	Posts           []*Post   `gorm:"many2many:user_posts"`
-	Role            *Role     `gorm:"foreignkey:RoleID"` // Belongs to: `User` Belong to one `Role` , The ForeignKey define in `User`
 	UUID            uuid.UUID `gorm:"type:uuid;unique_index"`
 	Slug            string    `gorm:"unique_index;not null"`
 	Name            string    `gorm:"not null"`
@@ -36,6 +35,11 @@ type User struct {
 	LastLogin       time.Time
 	CreateBy        uint
 	UpdateBy        uint
+}
+
+// CanOperateUser determine whether the user can operate about other user's info
+func (v *User) CanOperateUser() bool {
+	return v.RoleID <= RoleEditor
 }
 
 // IsNode IsNode
@@ -68,9 +72,9 @@ func (v *User) BeforeSave(scope *gorm.Scope) error {
 
 // PreDefinedUsers PreDefinedUsers
 var PreDefinedUsers = []*User{
-	{Name: "owner", Slug: "owner", Password: "adminadmin", RoleID: 1},
-	{Name: "admin", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[1]},
-	{Name: "editor", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[2]},
-	{Name: "author", Slug: "admin", Password: "adminadmin", RoleID: 4},
-	{Name: "contributer", Slug: "admin", Password: "adminadmin", Role: PreDefinedRoles[4]},
+	{Name: "owner", Slug: "owner", Password: "adminadmin", RoleID: RoleOwner},
+	{Name: "admin", Slug: "admin", Password: "adminadmin", RoleID: RoleAdministrator},
+	{Name: "editor", Slug: "editor", Password: "adminadmin", RoleID: RoleEditor},
+	{Name: "author", Slug: "author", Password: "adminadmin", RoleID: RoleAuthor},
+	{Name: "contributer", Slug: "contributer", Password: "adminadmin", RoleID: RoleContributor},
 }

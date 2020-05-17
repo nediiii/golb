@@ -118,7 +118,7 @@ type ComplexityRoot struct {
 		CreateRole                func(childComplexity int, name string, description *string) int
 		CreateSetting             func(childComplexity int, key string, value string) int
 		CreateTag                 func(childComplexity int, slug string, name string, description *string) int
-		CreateUser                func(childComplexity int, slug string, name string, password string) int
+		CreateUser                func(childComplexity int, slug string, password string, name string, role string, email *string, bio *string) int
 		DeleteComment             func(childComplexity int, id string) int
 		DeletePost                func(childComplexity int, id string) int
 		DeleteRole                func(childComplexity int, id string) int
@@ -216,6 +216,7 @@ type ComplexityRoot struct {
 	}
 
 	Query struct {
+		AllComments  func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string, postID *string, parentID *string) int
 		AllPosts     func(childComplexity int, page *int, perPage *int, paged *bool, first *int, last *int, after *string, before *string) int
 		AllRoles     func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
 		AllSettings  func(childComplexity int, page *int, perPage *int, first *int, last *int, after *string, before *string) int
@@ -377,7 +378,7 @@ type CommentResolver interface {
 	ReplyConnection(ctx context.Context, obj *models.Comment, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.CommentRepliesConnection, error)
 }
 type MutationResolver interface {
-	Auth(ctx context.Context, username *string, password *string, token *string) (*model.Jwt, error)
+	Auth(ctx context.Context, username *string, password *string, token *string) (string, error)
 	SingleUpload(ctx context.Context, file graphql.Upload) (*model.File, error)
 	SingleUploadWithPayload(ctx context.Context, req model.UploadFile) (*model.File, error)
 	MultipleUpload(ctx context.Context, files []*graphql.Upload) ([]*model.File, error)
@@ -388,7 +389,7 @@ type MutationResolver interface {
 	CreateRole(ctx context.Context, name string, description *string) (*models.Role, error)
 	DeleteRole(ctx context.Context, id string) (bool, error)
 	UpdateRole(ctx context.Context, id string, name *string, description *string) (*models.Role, error)
-	CreateUser(ctx context.Context, slug string, name string, password string) (*models.User, error)
+	CreateUser(ctx context.Context, slug string, password string, name string, role string, email *string, bio *string) (*models.User, error)
 	DeleteUser(ctx context.Context, id string) (bool, error)
 	UpdateUser(ctx context.Context, id string, slug *string, name *string, email *string, oldPassword *string, newPassword *string, bio *string) (*models.User, error)
 	CreateTag(ctx context.Context, slug string, name string, description *string) (*models.Tag, error)
@@ -428,6 +429,7 @@ type QueryResolver interface {
 	AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error)
 	AllTags(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.TagsConnection, error)
 	AllPosts(ctx context.Context, page *int, perPage *int, paged *bool, first *int, last *int, after *string, before *string) (*model.PostsConnection, error)
+	AllComments(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string, postID *string, parentID *string) (*model.CommentsConnection, error)
 }
 type RoleResolver interface {
 	ID(ctx context.Context, obj *models.Role) (string, error)
@@ -453,6 +455,7 @@ type UserResolver interface {
 	UpdateAt(ctx context.Context, obj *models.User) (string, error)
 	CreateAt(ctx context.Context, obj *models.User) (string, error)
 
+	Role(ctx context.Context, obj *models.User) (*models.Role, error)
 	PostConnection(ctx context.Context, obj *models.User, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UserPostsConnection, error)
 }
 
@@ -796,7 +799,7 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 			return 0, false
 		}
 
-		return e.complexity.Mutation.CreateUser(childComplexity, args["slug"].(string), args["name"].(string), args["password"].(string)), true
+		return e.complexity.Mutation.CreateUser(childComplexity, args["slug"].(string), args["password"].(string), args["name"].(string), args["role"].(string), args["email"].(*string), args["bio"].(*string)), true
 
 	case "Mutation.deleteComment":
 		if e.complexity.Mutation.DeleteComment == nil {
@@ -1340,6 +1343,18 @@ func (e *executableSchema) Complexity(typeName, field string, childComplexity in
 		}
 
 		return e.complexity.PostsEdge.Node(childComplexity), true
+
+	case "Query.allComments":
+		if e.complexity.Query.AllComments == nil {
+			break
+		}
+
+		args, err := ec.field_Query_allComments_args(context.TODO(), rawArgs)
+		if err != nil {
+			return 0, false
+		}
+
+		return e.complexity.Query.AllComments(childComplexity, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string), args["postID"].(*string), args["parentID"].(*string)), true
 
 	case "Query.allPosts":
 		if e.complexity.Query.AllPosts == nil {
@@ -2148,7 +2163,7 @@ type JWT {
 	&ast.Source{Name: "graph/mutation.graphql", Input: `type Mutation {
   # auth
   "传入username和password获取token,或者传入token来刷新token"
-  auth(username: String, password: String, token: String): JWT!
+  auth(username: String, password: String, token: String): Token!
 
   # file
   singleUpload(file: Upload!): File! @hasLogin
@@ -2168,7 +2183,14 @@ type JWT {
   updateRole(id: ID!, name: String, description: String): Role! @hasLogin
 
   # user
-  createUser(slug: String!, name: String!, password: String!): User! @hasLogin
+  createUser(
+    slug: String!
+    password: String!
+    name: String!
+    role: ID!
+    email: String
+    bio: String
+  ): User! @hasLogin
   deleteUser(id: ID!): Boolean! @hasLogin
   updateUser(
     id: ID!
@@ -2427,6 +2449,17 @@ type Query @hasLogin {
     after: String
     before: String
   ): PostsConnection
+
+  allComments(
+    page: Int = 1
+    perPage: Int = 10
+    first: Int
+    last: Int
+    after: String
+    before: String
+    postID: ID # postID represent a specific post's ID, the response is this post's comments
+    parentID: ID # parentID represent a specific comment's ID, the response is this comment's replies
+  ): CommentsConnection
 }
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/role.graphql", Input: `"The ` + "`" + `Role` + "`" + ` type, represents the response of a role object."
@@ -2484,7 +2517,7 @@ scalar Date
 directive @hasLogin on FIELD_DEFINITION
 
 "The ` + "`" + `@hasRole` + "`" + ` directive type represents it needs the user has a specific role"
-directive @hasRole(role: String!) on FIELD_DEFINITION
+directive @hasRole(role: ID!) on FIELD_DEFINITION
 
 type SysStatus {
   Arch: String!
@@ -2492,6 +2525,8 @@ type SysStatus {
   Version: String!
   NumCPU: Int!
 }
+
+scalar Token
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/setting.graphql", Input: `"The ` + "`" + `Setting` + "`" + ` type, represents the response of system setting item."
 type Setting implements Node {
@@ -2630,7 +2665,7 @@ func (ec *executionContext) dir_hasRole_args(ctx context.Context, rawArgs map[st
 	args := map[string]interface{}{}
 	var arg0 string
 	if tmp, ok := rawArgs["role"]; ok {
-		arg0, err = ec.unmarshalNString2string(ctx, tmp)
+		arg0, err = ec.unmarshalNID2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -3005,21 +3040,45 @@ func (ec *executionContext) field_Mutation_createUser_args(ctx context.Context, 
 	}
 	args["slug"] = arg0
 	var arg1 string
-	if tmp, ok := rawArgs["name"]; ok {
+	if tmp, ok := rawArgs["password"]; ok {
 		arg1, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["name"] = arg1
+	args["password"] = arg1
 	var arg2 string
-	if tmp, ok := rawArgs["password"]; ok {
+	if tmp, ok := rawArgs["name"]; ok {
 		arg2, err = ec.unmarshalNString2string(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
 	}
-	args["password"] = arg2
+	args["name"] = arg2
+	var arg3 string
+	if tmp, ok := rawArgs["role"]; ok {
+		arg3, err = ec.unmarshalNID2string(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["role"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["email"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["email"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["bio"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["bio"] = arg5
 	return args, nil
 }
 
@@ -3660,6 +3719,76 @@ func (ec *executionContext) field_Query___type_args(ctx context.Context, rawArgs
 		}
 	}
 	args["name"] = arg0
+	return args, nil
+}
+
+func (ec *executionContext) field_Query_allComments_args(ctx context.Context, rawArgs map[string]interface{}) (map[string]interface{}, error) {
+	var err error
+	args := map[string]interface{}{}
+	var arg0 *int
+	if tmp, ok := rawArgs["page"]; ok {
+		arg0, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["page"] = arg0
+	var arg1 *int
+	if tmp, ok := rawArgs["perPage"]; ok {
+		arg1, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["perPage"] = arg1
+	var arg2 *int
+	if tmp, ok := rawArgs["first"]; ok {
+		arg2, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["first"] = arg2
+	var arg3 *int
+	if tmp, ok := rawArgs["last"]; ok {
+		arg3, err = ec.unmarshalOInt2ᚖint(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["last"] = arg3
+	var arg4 *string
+	if tmp, ok := rawArgs["after"]; ok {
+		arg4, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["after"] = arg4
+	var arg5 *string
+	if tmp, ok := rawArgs["before"]; ok {
+		arg5, err = ec.unmarshalOString2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["before"] = arg5
+	var arg6 *string
+	if tmp, ok := rawArgs["postID"]; ok {
+		arg6, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["postID"] = arg6
+	var arg7 *string
+	if tmp, ok := rawArgs["parentID"]; ok {
+		arg7, err = ec.unmarshalOID2ᚖstring(ctx, tmp)
+		if err != nil {
+			return nil, err
+		}
+	}
+	args["parentID"] = arg7
 	return args, nil
 }
 
@@ -5444,9 +5573,9 @@ func (ec *executionContext) _Mutation_auth(ctx context.Context, field graphql.Co
 		}
 		return graphql.Null
 	}
-	res := resTmp.(*model.Jwt)
+	res := resTmp.(string)
 	fc.Result = res
-	return ec.marshalNJWT2ᚖgolbᚋgraphᚋmodelᚐJwt(ctx, field.Selections, res)
+	return ec.marshalNToken2string(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _Mutation_singleUpload(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
@@ -5727,7 +5856,7 @@ func (ec *executionContext) _Mutation_createSetting(ctx context.Context, field g
 			return ec.directives.HasLogin(ctx, nil, directive0)
 		}
 		directive2 := func(ctx context.Context) (interface{}, error) {
-			role, err := ec.unmarshalNString2string(ctx, "aRole")
+			role, err := ec.unmarshalNID2string(ctx, "aRole")
 			if err != nil {
 				return nil, err
 			}
@@ -6094,7 +6223,7 @@ func (ec *executionContext) _Mutation_createUser(ctx context.Context, field grap
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		directive0 := func(rctx context.Context) (interface{}, error) {
 			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateUser(rctx, args["slug"].(string), args["name"].(string), args["password"].(string))
+			return ec.resolvers.Mutation().CreateUser(rctx, args["slug"].(string), args["password"].(string), args["name"].(string), args["role"].(string), args["email"].(*string), args["bio"].(*string))
 		}
 		directive1 := func(ctx context.Context) (interface{}, error) {
 			if ec.directives.HasLogin == nil {
@@ -8895,6 +9024,44 @@ func (ec *executionContext) _Query_allPosts(ctx context.Context, field graphql.C
 	return ec.marshalOPostsConnection2ᚖgolbᚋgraphᚋmodelᚐPostsConnection(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Query_allComments(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Query",
+		Field:    field,
+		Args:     nil,
+		IsMethod: true,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	rawArgs := field.ArgumentMap(ec.Variables)
+	args, err := ec.field_Query_allComments_args(ctx, rawArgs)
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	fc.Args = args
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Query().AllComments(rctx, args["page"].(*int), args["perPage"].(*int), args["first"].(*int), args["last"].(*int), args["after"].(*string), args["before"].(*string), args["postID"].(*string), args["parentID"].(*string))
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*model.CommentsConnection)
+	fc.Result = res
+	return ec.marshalOCommentsConnection2ᚖgolbᚋgraphᚋmodelᚐCommentsConnection(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Query___type(ctx context.Context, field graphql.CollectedField) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -10784,13 +10951,13 @@ func (ec *executionContext) _User_role(ctx context.Context, field graphql.Collec
 		Object:   "User",
 		Field:    field,
 		Args:     nil,
-		IsMethod: false,
+		IsMethod: true,
 	}
 
 	ctx = graphql.WithFieldContext(ctx, fc)
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
 		ctx = rctx // use context from middleware stack in children
-		return obj.Role, nil
+		return ec.resolvers.User().Role(rctx, obj)
 	})
 	if err != nil {
 		ec.Error(ctx, err)
@@ -13710,6 +13877,17 @@ func (ec *executionContext) _Query(ctx context.Context, sel ast.SelectionSet) gr
 				res = ec._Query_allPosts(ctx, field)
 				return res
 			})
+		case "allComments":
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._Query_allComments(ctx, field)
+				return res
+			})
 		case "__type":
 			out.Values[i] = ec._Query___type(ctx, field)
 		case "__schema":
@@ -14371,7 +14549,16 @@ func (ec *executionContext) _User(ctx context.Context, sel ast.SelectionSet, obj
 		case "bio":
 			out.Values[i] = ec._User_bio(ctx, field, obj)
 		case "role":
-			out.Values[i] = ec._User_role(ctx, field, obj)
+			field := field
+			out.Concurrently(i, func() (res graphql.Marshaler) {
+				defer func() {
+					if r := recover(); r != nil {
+						ec.Error(ctx, ec.Recover(ctx, r))
+					}
+				}()
+				res = ec._User_role(ctx, field, obj)
+				return res
+			})
 		case "postConnection":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -14968,20 +15155,6 @@ func (ec *executionContext) marshalNInt2int(ctx context.Context, sel ast.Selecti
 	return res
 }
 
-func (ec *executionContext) marshalNJWT2golbᚋgraphᚋmodelᚐJwt(ctx context.Context, sel ast.SelectionSet, v model.Jwt) graphql.Marshaler {
-	return ec._JWT(ctx, sel, &v)
-}
-
-func (ec *executionContext) marshalNJWT2ᚖgolbᚋgraphᚋmodelᚐJwt(ctx context.Context, sel ast.SelectionSet, v *model.Jwt) graphql.Marshaler {
-	if v == nil {
-		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
-			ec.Errorf(ctx, "must not be null")
-		}
-		return graphql.Null
-	}
-	return ec._JWT(ctx, sel, v)
-}
-
 func (ec *executionContext) marshalNPageInfo2golbᚋgraphᚋmodelᚐPageInfo(ctx context.Context, sel ast.SelectionSet, v model.PageInfo) graphql.Marshaler {
 	return ec._PageInfo(ctx, sel, &v)
 }
@@ -15199,6 +15372,20 @@ func (ec *executionContext) marshalNTagsEdge2ᚖgolbᚋgraphᚋmodelᚐTagsEdge(
 		return graphql.Null
 	}
 	return ec._TagsEdge(ctx, sel, v)
+}
+
+func (ec *executionContext) unmarshalNToken2string(ctx context.Context, v interface{}) (string, error) {
+	return graphql.UnmarshalString(v)
+}
+
+func (ec *executionContext) marshalNToken2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
+	res := graphql.MarshalString(v)
+	if res == graphql.Null {
+		if !graphql.HasFieldError(ctx, graphql.GetFieldContext(ctx)) {
+			ec.Errorf(ctx, "must not be null")
+		}
+	}
+	return res
 }
 
 func (ec *executionContext) unmarshalNUpload2githubᚗcomᚋ99designsᚋgqlgenᚋgraphqlᚐUpload(ctx context.Context, v interface{}) (graphql.Upload, error) {
@@ -15699,6 +15886,17 @@ func (ec *executionContext) marshalOCommentRepliesEdge2ᚕᚖgolbᚋgraphᚋmode
 	}
 	wg.Wait()
 	return ret
+}
+
+func (ec *executionContext) marshalOCommentsConnection2golbᚋgraphᚋmodelᚐCommentsConnection(ctx context.Context, sel ast.SelectionSet, v model.CommentsConnection) graphql.Marshaler {
+	return ec._CommentsConnection(ctx, sel, &v)
+}
+
+func (ec *executionContext) marshalOCommentsConnection2ᚖgolbᚋgraphᚋmodelᚐCommentsConnection(ctx context.Context, sel ast.SelectionSet, v *model.CommentsConnection) graphql.Marshaler {
+	if v == nil {
+		return graphql.Null
+	}
+	return ec._CommentsConnection(ctx, sel, v)
 }
 
 func (ec *executionContext) marshalOCommentsEdge2ᚕᚖgolbᚋgraphᚋmodelᚐCommentsEdgeᚄ(ctx context.Context, sel ast.SelectionSet, v []*model.CommentsEdge) graphql.Marshaler {

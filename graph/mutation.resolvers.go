@@ -24,7 +24,7 @@ import (
 	"github.com/jinzhu/gorm"
 )
 
-func (r *mutationResolver) Auth(ctx context.Context, username *string, password *string, token *string) (*model.Jwt, error) {
+func (r *mutationResolver) Auth(ctx context.Context, username *string, password *string, token *string) (string, error) {
 	if token != nil {
 		// use token
 		parseToken, err := utils.JwtParse(*token)
@@ -35,33 +35,31 @@ func (r *mutationResolver) Auth(ctx context.Context, username *string, password 
 				v := &models.User{}
 				name := claims["aud"].(string)
 				if !tx.Where("name = ?", name).First(v).RecordNotFound() {
-					newClaims := utils.GenerateClaims(v.Slug, v.ID)
+					newClaims := utils.GenerateClaims(v.Slug, v.ID, v.RoleID)
 					tokenStr, err := utils.GenerateTokenWithClaims(newClaims)
 					if err == nil {
-						jwt := &model.Jwt{ExpireAt: strconv.FormatInt(newClaims.ExpiresAt, 10), Token: tokenStr}
-						return jwt, nil
+						return tokenStr, nil
 					}
 				}
 			}
 		}
-		return nil, errors.New("Authentication fail, please retry with correct token")
+		return "", errors.New("Authentication fail, please retry with correct token")
 	} else if username != nil && password != nil {
 		// use username and password
 		tx := services.DB
 		v := &models.User{}
 		if !tx.Where("name = ?", username).First(v).RecordNotFound() {
 			if utils.IsCorrect(v.Password, *password) {
-				claims := utils.GenerateClaims(v.Slug, v.ID)
+				claims := utils.GenerateClaims(v.Slug, v.ID, v.RoleID)
 				tokenStr, err := utils.GenerateTokenWithClaims(claims)
 				if err == nil {
-					jwt := &model.Jwt{ExpireAt: strconv.FormatInt(claims.ExpiresAt, 10), Token: tokenStr}
-					return jwt, nil
+					return tokenStr, nil
 				}
 			}
 		}
-		return nil, errors.New("Authentication fail, please retry with correct username and password")
+		return "", errors.New("Authentication fail, please retry with correct username and password")
 	}
-	return nil, errors.New("Invalid input! You must send a token or (username and password)")
+	return "", errors.New("Invalid input! You must send a token or (username and password)")
 }
 
 func (r *mutationResolver) SingleUpload(ctx context.Context, file graphql.Upload) (*model.File, error) {
@@ -226,12 +224,24 @@ func (r *mutationResolver) UpdateRole(ctx context.Context, id string, name *stri
 	return obj, nil
 }
 
-func (r *mutationResolver) CreateUser(ctx context.Context, slug string, name string, password string) (*models.User, error) {
+func (r *mutationResolver) CreateUser(ctx context.Context, slug string, password string, name string, role string, email *string, bio *string) (*models.User, error) {
+
+	if err := utils.CheckPermission(ctx, models.RoleEditor); err != nil {
+		return nil, err
+	}
+
 	obj := &models.User{}
 
 	obj.Slug = slug
 	obj.Name = name
 	obj.Password = password
+	obj.RoleID = utils.String2Uint(role)
+	if email != nil {
+		obj.Email = *email
+	}
+	if bio != nil {
+		obj.Bio = *bio
+	}
 
 	var err gorm.Errors
 	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
@@ -453,6 +463,7 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, authors []string, com
 func (r *mutationResolver) CreateComment(ctx context.Context, nickname string, email string, target string, content string, postID string, parentID string) (*models.Comment, error) {
 	obj := &models.Comment{}
 
+	// TODO email notice
 	obj.Nickname = nickname
 	obj.Email = email
 	obj.Target = target

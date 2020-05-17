@@ -1,4 +1,4 @@
-# golb
+# golb (This project is under development)
 
 blog system base on Golang and GraphQL
 
