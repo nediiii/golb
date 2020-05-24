@@ -11,7 +11,6 @@ import (
 	"golb/graph/model"
 	"golb/models"
 	"golb/services"
-	"log"
 	"runtime"
 )
 
@@ -115,8 +114,8 @@ func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name
 
 func (r *queryResolver) AllSettings(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.SettingsConnection, error) {
 	tx := services.DB
-	tx = tx.Model(&models.Setting{})
 	tx = tx.Order("id asc")
+	tx = tx.Model(&models.Setting{})
 
 	// TODO use parameters to filter record
 
@@ -137,8 +136,8 @@ func (r *queryResolver) AllSettings(ctx context.Context, page *int, perPage *int
 
 func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.RolesConnection, error) {
 	tx := services.DB
-	tx = tx.Model(&models.Role{})
 	tx = tx.Order("id asc")
+	tx = tx.Model(&models.Role{})
 
 	// TODO use parameters to filter record
 
@@ -158,7 +157,7 @@ func (r *queryResolver) AllRoles(ctx context.Context, page *int, perPage *int, f
 }
 
 func (r *queryResolver) AllUsers(ctx context.Context, page *int, perPage *int, first *int, last *int, after *string, before *string) (*model.UsersConnection, error) {
-	log.Println("AllUsers trigger")
+	// log.Println("AllUsers trigger")
 	tx := services.DB
 	tx = tx.Model(&models.User{})
 	tx = tx.Order("id asc")

@@ -225,7 +225,6 @@ func (r *mutationResolver) UpdateRole(ctx context.Context, id string, name *stri
 }
 
 func (r *mutationResolver) CreateUser(ctx context.Context, slug string, password string, name string, role string, email *string, bio *string) (*models.User, error) {
-
 	if err := utils.CheckPermission(ctx, models.RoleEditor); err != nil {
 		return nil, err
 	}

@@ -54,7 +54,7 @@ func JwtParse(tk string) (*jwt.Token, error) {
 
 // RefreshToken RefreshToken
 func RefreshToken(tk string) (string, error) {
-	parseToken, err := jwt.Parse(tk, keyFunc)
+	parseToken, err := JwtParse(tk)
 	if claims, ok := parseToken.Claims.(jwt.MapClaims); ok && parseToken.Valid {
 		newClaims := GenerateClaims(claims["aud"].(string), claims["jti"].(uint), claims["sub"].(uint))
 		tokenStr, err := GenerateTokenWithClaims(newClaims)

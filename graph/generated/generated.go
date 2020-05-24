@@ -2526,6 +2526,7 @@ type SysStatus {
   NumCPU: Int!
 }
 
+"The ` + "`" + `Token` + "`" + ` scalar type represents a JWT toekn string"
 scalar Token
 `, BuiltIn: false},
 	&ast.Source{Name: "graph/setting.graphql", Input: `"The ` + "`" + `Setting` + "`" + ` type, represents the response of system setting item."

@@ -2,6 +2,8 @@ package main
 
 import (
 	"context"
+	"os"
+	"strings"
 
 	"github.com/99designs/gqlgen/graphql"
 	"github.com/99designs/gqlgen/graphql/handler"
@@ -19,17 +21,28 @@ import (
 )
 
 func ginSetup() *gin.Engine {
-	r := gin.Default()
+	var r *gin.Engine
+
+	if strings.HasSuffix(os.Args[0], ".test") {
+		// turn off log
+		gin.SetMode(gin.ReleaseMode)
+		r = gin.New()
+	} else {
+		r = gin.Default()
+	}
+
 	r.Use(cors.Default())
 	r.Use(gzip.Gzip(gzip.DefaultCompression))
 
 	r.Use(middlewares.WrapGinContextToContext())
 	r.Use(middlewares.WrapDataloaderToContext())
 
-	r.Static("/statics", "./statics")
+	if !strings.HasSuffix(os.Args[0], ".test") {
+		r.Static("/statics", "./statics")
+		r.GET("/", playgroundHandler())
+	}
 
 	r.POST("/query", graphqlHandler())
-	r.GET("/", playgroundHandler())
 	return r
 }
 
@@ -49,13 +62,27 @@ func graphqlHandler() gin.HandlerFunc {
 	c.Directives.HasLogin = graph.HasLoginFn
 	c.Directives.HasRole = graph.HasRoleFn
 
+	// 1 2 4 8
+	// scalar type connection
+
+	connectionComplexityFn := func(childComplexity int, page, perPage, first, last *int, after, before *string) int {
+		return childComplexity * 4
+	}
+	c.Complexity.Role.UserConnection = connectionComplexityFn
+	c.Complexity.User.PostConnection = connectionComplexityFn
+	c.Complexity.Post.AuthorConnection = connectionComplexityFn
+	c.Complexity.Post.CommentConnection = connectionComplexityFn
+	c.Complexity.Post.TagConnection = connectionComplexityFn
+	c.Complexity.Tag.PostConnection = connectionComplexityFn
+	c.Complexity.Comment.ReplyConnection = connectionComplexityFn
+
 	es := generated.NewExecutableSchema(c)
 	h := handler.NewDefaultServer(es)
 
 	// add complexity limit
 	complexity := &extension.ComplexityLimit{
 		Func: func(ctx context.Context, rc *graphql.OperationContext) int {
-			return 500
+			return 1 << 9 // 512
 		},
 	}
 	h.Use(complexity)

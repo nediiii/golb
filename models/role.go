@@ -14,7 +14,7 @@ import (
 
 // Role 角色
 type Role struct {
-	gorm.Model  `gorm:"embedded"`
+	gorm.Model
 	Users       []*User   `gorm:"foreignkey:RoleID"`
 	UUID        uuid.UUID `gorm:"type:uuid;unique_index"`
 	Name        string    `gorm:"unique_index;not null"`

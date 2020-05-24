@@ -44,3 +44,22 @@ func expect(req, res string, t *testing.T) {
 		t.Error("Unexpected response: ", string(result))
 	}
 }
+
+func TestMultiQuery(t *testing.T) {
+	var testCase = []struct {
+		request, response string
+	}{
+		{
+			`{"query": "{allSettings{settings{id}}allRoles{roles{id}}}"}`,
+			`{"data":{"allSettings":{"settings":[{"id":"1"},{"id":"2"},{"id":"3"},{"id":"4"},{"id":"5"},{"id":"6"},{"id":"7"}]},"allRoles":{"roles":[{"id":"1"},{"id":"2"},{"id":"3"},{"id":"4"},{"id":"5"}]}}}`,
+		},
+		{
+			`{"query": "{allRoles{roles{id}}allUsers{users{id}}}"}`,
+			`{"data":{"allRoles":{"roles":[{"id":"1"},{"id":"2"},{"id":"3"},{"id":"4"},{"id":"5"}]},"allUsers":{"users":[{"id":"1"},{"id":"2"},{"id":"3"},{"id":"4"},{"id":"5"}]}}}`,
+		},
+	}
+
+	for _, tC := range testCase {
+		expect(tC.request, tC.response, t)
+	}
+}
