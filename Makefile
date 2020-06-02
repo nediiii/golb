@@ -45,3 +45,9 @@ dvp:
 
 dap:
 	make dcp dip dnp dvp
+
+builder:
+	docker build --no-cache . -f build.Dockerfile -t nediiii/golb-builder
+
+build:
+	docker build --no-cache . -t nediiii/golb

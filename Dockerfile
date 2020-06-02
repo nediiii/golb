@@ -1,6 +1,16 @@
-FROM nediiii/golang:1.14
+FROM nediiii/golb-builder AS builder
 
 WORKDIR /go/src/app/golb
-COPY go.* ./
-RUN go mod download -x
-# docker build . -t nediiii/golb-build-env
+COPY . .
+RUN CGO_ENABLED=0 GOOS=linux go build -v -a -ldflags '-extldflags "-static"'
+
+
+FROM nediiii/ubuntu:20.04
+
+WORKDIR /root/
+
+COPY --from=builder /go/src/app/golb/golb .
+COPY --from=builder /go/src/app/golb/config.*.yml ./
+
+CMD ["./golb"]
+# docker build --no-cache . -t nediiii/golb
