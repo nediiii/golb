@@ -7,9 +7,9 @@ site:
       key: "some.secret.key"
 
 database:
-  host: "localhost"
-  dbname: "golbat"
+  host: "db"
   port: 5432
+  dbname: "golbat"
   user: "golbat"
   password: "golbat"
   debug: false
