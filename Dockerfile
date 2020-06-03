@@ -9,8 +9,11 @@ FROM nediiii/ubuntu:20.04
 
 WORKDIR /root/
 
-COPY --from=builder /go/src/app/golb/golb .
-COPY --from=builder /go/src/app/golb/config.*.yml ./
+RUN mkdir statics
+
+COPY --from=builder /go/src/app/golb/golb /go/src/app/golb/config.production.yml ./
+
+ENV GIN_MODE="release"
 
 CMD ["./golb"]
 # docker build --no-cache . -t nediiii/golb

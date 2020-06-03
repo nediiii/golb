@@ -96,7 +96,7 @@ type Mutation {
     content: String!
     postID: ID!
     parentID: ID!
-  ): Comment! @hasLogin
+  ): Comment!
   deleteComment(id: ID!): Boolean! @hasLogin
   updateComment(id: ID!): Comment! @hasLogin
 }

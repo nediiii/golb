@@ -16,6 +16,8 @@ services:
   golb:
     image: "nediiii/golb"
     restart: "always"
+    depends_on:
+      - db
     ports:
       - "8090:8090"
     environment:

@@ -460,9 +460,9 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, authors []string, com
 }
 
 func (r *mutationResolver) CreateComment(ctx context.Context, nickname string, email string, target string, content string, postID string, parentID string) (*models.Comment, error) {
+	tx := services.DB
 	obj := &models.Comment{}
 
-	// TODO email notice
 	obj.Nickname = nickname
 	obj.Email = email
 	obj.Target = target
@@ -475,9 +475,26 @@ func (r *mutationResolver) CreateComment(ctx context.Context, nickname string, e
 	obj.Agent = ginContext.Request.Header.Get("User-Agent")
 
 	var err gorm.Errors
-	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
+	if err = tx.Create(obj).GetErrors(); len(err) > 0 {
 		return nil, err
 	}
+
+	// emial notice
+	// @guest reply your comment. plz visit @site to check it.
+	targetPost := &models.Post{}
+	tx.Model(targetPost).Find(&targetPost, postID)
+	targetComment := &models.Comment{}
+	var replyRecipient string
+	if tx.Model(targetComment).Find(&targetComment, parentID).RecordNotFound() {
+		// notice the post owner
+		var u models.User
+		tx.Model(targetPost).Related(&u, "PrimaryAuthorID")
+		replyRecipient = u.Email
+	} else {
+		// notice the comment owner
+		replyRecipient = targetComment.Email
+	}
+	services.Reply(email, replyRecipient, targetPost.Slug)
 	return obj, nil
 }
 

@@ -2258,7 +2258,7 @@ type JWT {
     content: String!
     postID: ID!
     parentID: ID!
-  ): Comment! @hasLogin
+  ): Comment!
   deleteComment(id: ID!): Boolean! @hasLogin
   updateComment(id: ID!): Comment! @hasLogin
 }
@@ -6771,28 +6771,8 @@ func (ec *executionContext) _Mutation_createComment(ctx context.Context, field g
 	}
 	fc.Args = args
 	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		directive0 := func(rctx context.Context) (interface{}, error) {
-			ctx = rctx // use context from middleware stack in children
-			return ec.resolvers.Mutation().CreateComment(rctx, args["nickname"].(string), args["email"].(string), args["target"].(string), args["content"].(string), args["postID"].(string), args["parentID"].(string))
-		}
-		directive1 := func(ctx context.Context) (interface{}, error) {
-			if ec.directives.HasLogin == nil {
-				return nil, errors.New("directive hasLogin is not implemented")
-			}
-			return ec.directives.HasLogin(ctx, nil, directive0)
-		}
-
-		tmp, err := directive1(rctx)
-		if err != nil {
-			return nil, err
-		}
-		if tmp == nil {
-			return nil, nil
-		}
-		if data, ok := tmp.(*models.Comment); ok {
-			return data, nil
-		}
-		return nil, fmt.Errorf(`unexpected type %T from directive, should be *golb/models.Comment`, tmp)
+		ctx = rctx // use context from middleware stack in children
+		return ec.resolvers.Mutation().CreateComment(rctx, args["nickname"].(string), args["email"].(string), args["target"].(string), args["content"].(string), args["postID"].(string), args["parentID"].(string))
 	})
 	if err != nil {
 		ec.Error(ctx, err)

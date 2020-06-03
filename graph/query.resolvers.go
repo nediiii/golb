@@ -109,6 +109,9 @@ func (r *queryResolver) Post(ctx context.Context, id *string, slug *string, name
 	if tx.First(&v).RecordNotFound() {
 		return nil, errors.New("no record match")
 	}
+	var u models.User
+	tx.Model(&v).Related(&u, "PrimaryAuthorID")
+	v.PrimaryAuthor = &u
 	return &v, nil
 }
 
