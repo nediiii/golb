@@ -16,6 +16,8 @@ type Post implements Node {
   publishedAt: Date!
   publishedBy: ID!
   commentable: Boolean!
+  primaryAuthor: User
+
   tagConnection(
     page: Int
     per_page: Int
@@ -42,7 +44,6 @@ type Post implements Node {
     after: String
     before: String
   ): PostAuthorsConnection
-  primaryAuthor: User
 }
 
 enum PostStatus {

@@ -2225,7 +2225,7 @@ type JWT {
     paged: Boolean
     slug: String!
     status: String
-    tags: [String!]
+    tags: [ID!]
     title: String!
   ): Post! @hasLogin
   deletePost(id: ID!): Boolean! @hasLogin
@@ -2307,6 +2307,8 @@ interface Node {
   publishedAt: Date!
   publishedBy: ID!
   commentable: Boolean!
+  primaryAuthor: User
+
   tagConnection(
     page: Int
     per_page: Int
@@ -2333,7 +2335,6 @@ interface Node {
     after: String
     before: String
   ): PostAuthorsConnection
-  primaryAuthor: User
 }
 
 enum PostStatus {
@@ -2938,7 +2939,7 @@ func (ec *executionContext) field_Mutation_createPost_args(ctx context.Context, 
 	args["status"] = arg14
 	var arg15 []string
 	if tmp, ok := rawArgs["tags"]; ok {
-		arg15, err = ec.unmarshalOString2ᚕstringᚄ(ctx, tmp)
+		arg15, err = ec.unmarshalOID2ᚕstringᚄ(ctx, tmp)
 		if err != nil {
 			return nil, err
 		}
@@ -7727,6 +7728,37 @@ func (ec *executionContext) _Post_commentable(ctx context.Context, field graphql
 	return ec.marshalNBoolean2bool(ctx, field.Selections, res)
 }
 
+func (ec *executionContext) _Post_primaryAuthor(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
+	defer func() {
+		if r := recover(); r != nil {
+			ec.Error(ctx, ec.Recover(ctx, r))
+			ret = graphql.Null
+		}
+	}()
+	fc := &graphql.FieldContext{
+		Object:   "Post",
+		Field:    field,
+		Args:     nil,
+		IsMethod: false,
+	}
+
+	ctx = graphql.WithFieldContext(ctx, fc)
+	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
+		ctx = rctx // use context from middleware stack in children
+		return obj.PrimaryAuthor, nil
+	})
+	if err != nil {
+		ec.Error(ctx, err)
+		return graphql.Null
+	}
+	if resTmp == nil {
+		return graphql.Null
+	}
+	res := resTmp.(*models.User)
+	fc.Result = res
+	return ec.marshalOUser2ᚖgolbᚋmodelsᚐUser(ctx, field.Selections, res)
+}
+
 func (ec *executionContext) _Post_tagConnection(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
 	defer func() {
 		if r := recover(); r != nil {
@@ -7839,37 +7871,6 @@ func (ec *executionContext) _Post_authorConnection(ctx context.Context, field gr
 	res := resTmp.(*model.PostAuthorsConnection)
 	fc.Result = res
 	return ec.marshalOPostAuthorsConnection2ᚖgolbᚋgraphᚋmodelᚐPostAuthorsConnection(ctx, field.Selections, res)
-}
-
-func (ec *executionContext) _Post_primaryAuthor(ctx context.Context, field graphql.CollectedField, obj *models.Post) (ret graphql.Marshaler) {
-	defer func() {
-		if r := recover(); r != nil {
-			ec.Error(ctx, ec.Recover(ctx, r))
-			ret = graphql.Null
-		}
-	}()
-	fc := &graphql.FieldContext{
-		Object:   "Post",
-		Field:    field,
-		Args:     nil,
-		IsMethod: false,
-	}
-
-	ctx = graphql.WithFieldContext(ctx, fc)
-	resTmp, err := ec.ResolverMiddleware(ctx, func(rctx context.Context) (interface{}, error) {
-		ctx = rctx // use context from middleware stack in children
-		return obj.PrimaryAuthor, nil
-	})
-	if err != nil {
-		ec.Error(ctx, err)
-		return graphql.Null
-	}
-	if resTmp == nil {
-		return graphql.Null
-	}
-	res := resTmp.(*models.User)
-	fc.Result = res
-	return ec.marshalOUser2ᚖgolbᚋmodelsᚐUser(ctx, field.Selections, res)
 }
 
 func (ec *executionContext) _PostAuthorsConnection_pageInfo(ctx context.Context, field graphql.CollectedField, obj *model.PostAuthorsConnection) (ret graphql.Marshaler) {
@@ -13425,6 +13426,8 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 			if out.Values[i] == graphql.Null {
 				atomic.AddUint32(&invalids, 1)
 			}
+		case "primaryAuthor":
+			out.Values[i] = ec._Post_primaryAuthor(ctx, field, obj)
 		case "tagConnection":
 			field := field
 			out.Concurrently(i, func() (res graphql.Marshaler) {
@@ -13458,8 +13461,6 @@ func (ec *executionContext) _Post(ctx context.Context, sel ast.SelectionSet, obj
 				res = ec._Post_authorConnection(ctx, field, obj)
 				return res
 			})
-		case "primaryAuthor":
-			out.Values[i] = ec._Post_primaryAuthor(ctx, field, obj)
 		default:
 			panic("unknown field " + strconv.Quote(field.Name))
 		}
@@ -16544,38 +16545,6 @@ func (ec *executionContext) unmarshalOString2string(ctx context.Context, v inter
 
 func (ec *executionContext) marshalOString2string(ctx context.Context, sel ast.SelectionSet, v string) graphql.Marshaler {
 	return graphql.MarshalString(v)
-}
-
-func (ec *executionContext) unmarshalOString2ᚕstringᚄ(ctx context.Context, v interface{}) ([]string, error) {
-	var vSlice []interface{}
-	if v != nil {
-		if tmp1, ok := v.([]interface{}); ok {
-			vSlice = tmp1
-		} else {
-			vSlice = []interface{}{v}
-		}
-	}
-	var err error
-	res := make([]string, len(vSlice))
-	for i := range vSlice {
-		res[i], err = ec.unmarshalNString2string(ctx, vSlice[i])
-		if err != nil {
-			return nil, err
-		}
-	}
-	return res, nil
-}
-
-func (ec *executionContext) marshalOString2ᚕstringᚄ(ctx context.Context, sel ast.SelectionSet, v []string) graphql.Marshaler {
-	if v == nil {
-		return graphql.Null
-	}
-	ret := make(graphql.Array, len(v))
-	for i := range v {
-		ret[i] = ec.marshalNString2string(ctx, sel, v[i])
-	}
-
-	return ret
 }
 
 func (ec *executionContext) unmarshalOString2ᚖstring(ctx context.Context, v interface{}) (*string, error) {

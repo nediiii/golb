@@ -358,32 +358,46 @@ func (r *mutationResolver) CreatePost(ctx context.Context, authors []string, com
 	obj.Title = title
 	obj.Markdown = markdown
 	obj.HTML = html
-	// TODO primaryAuthorID authors tags
-	if excerpt != nil {
+	obj.PrimaryAuthorID = utils.String2Uint(primaryAuthorID)
+	services.DB.Where("id IN (?)", tags).Find(&obj.Tags)
+	services.DB.Where("id IN (?)", authors).Find(&obj.Authors)
+	services.DB.Find(&obj.PrimaryAuthor, primaryAuthorID)
+
+	if excerpt != nil && obj.Excerpt != *excerpt {
 		obj.Excerpt = *excerpt
 	}
-	if featured != nil {
+	if featured != nil && obj.Featured != *featured {
 		obj.Featured = *featured
 	}
-	if paged != nil {
+	if paged != nil && obj.Paged != *paged {
 		obj.Paged = *paged
 	}
-	if commentable != nil {
+	if commentable != nil && obj.Commentable != *commentable {
 		obj.Commentable = *commentable
 	}
-	// TODO publishedBy publishedAt
-	if image != nil {
+	if image != nil && obj.Image != *image {
 		obj.Image = *image
 	}
-	if metaTitle != nil {
+	if metaTitle != nil && obj.MetaTitle != *metaTitle {
 		obj.MetaTitle = *metaTitle
 	}
-	if metaDescription != nil {
+	if metaDescription != nil && obj.MetaDescription != *metaDescription {
 		obj.MetaDescription = *metaDescription
 	}
-	if status != nil {
+	if status != nil && obj.Status != *status {
 		obj.Status = *status
 	}
+	if publishedBy != nil && obj.PublishedBy != utils.String2Uint(*publishedBy) {
+		obj.PublishedBy = utils.String2Uint(*publishedBy)
+	}
+	if publishedAt != nil && obj.PublishedAt != utils.UnixString2Time(*publishedAt) {
+		obj.PublishedAt = utils.UnixString2Time(*publishedAt)
+	}
+
+	services.DB.Where("id IN (?)", tags).Find(&obj.Tags)
+	services.DB.Model(obj).Association("Tags").Append(obj.Tags)
+	services.DB.Where("id IN (?)", authors).Find(&obj.Authors)
+	services.DB.Model(obj).Association("Authors").Append(obj.Authors)
 
 	var err gorm.Errors
 	if err = services.DB.Create(obj).GetErrors(); len(err) > 0 {
@@ -410,47 +424,57 @@ func (r *mutationResolver) UpdatePost(ctx context.Context, authors []string, com
 		return nil, errors.New("要更新的记录不存在")
 	}
 
-	if slug != nil {
+	if slug != nil && obj.Slug != *slug {
 		obj.Slug = *slug
 	}
-	if title != nil {
+	if title != nil && obj.Title != *title {
 		obj.Title = *title
 	}
-	if markdown != nil {
+	if markdown != nil && obj.Markdown != *markdown {
 		obj.Markdown = *markdown
 	}
-	if html != nil {
+	if html != nil && obj.HTML != *html {
 		obj.HTML = *html
 	}
-	// TODO  authors tags
-	if primaryAuthorID != nil {
+	if primaryAuthorID != nil && obj.PrimaryAuthorID != utils.String2Uint(*primaryAuthorID) {
 		obj.PrimaryAuthorID = utils.String2Uint(*primaryAuthorID)
 	}
-	if excerpt != nil {
+	if excerpt != nil && obj.Excerpt != *excerpt {
 		obj.Excerpt = *excerpt
 	}
-	if featured != nil {
+	if featured != nil && obj.Featured != *featured {
 		obj.Featured = *featured
 	}
-	if paged != nil {
+	if paged != nil && obj.Paged != *paged {
 		obj.Paged = *paged
 	}
-	if commentable != nil {
+	if commentable != nil && obj.Commentable != *commentable {
 		obj.Commentable = *commentable
 	}
-	// TODO publishedBy publishedAt
-	if image != nil {
+	if image != nil && obj.Image != *image {
 		obj.Image = *image
 	}
-	if metaTitle != nil {
+	if metaTitle != nil && obj.MetaTitle != *metaTitle {
 		obj.MetaTitle = *metaTitle
 	}
-	if metaDescription != nil {
+	if metaDescription != nil && obj.MetaDescription != *metaDescription {
 		obj.MetaDescription = *metaDescription
 	}
-	if status != nil {
+	if status != nil && obj.Status != *status {
 		obj.Status = *status
 	}
+	if publishedBy != nil && obj.PublishedBy != utils.String2Uint(*publishedBy) {
+		obj.PublishedBy = utils.String2Uint(*publishedBy)
+	}
+	if publishedAt != nil && obj.PublishedAt != utils.UnixString2Time(*publishedAt) {
+		obj.PublishedAt = utils.UnixString2Time(*publishedAt)
+	}
+
+	services.DB.Where("id IN (?)", tags).Find(&obj.Tags)
+	middlewares.GetDataloaderFromContext(ctx).PostTagsLoader.Clear(obj.ID) // clean the dataloader cache, makesure data is newest.
+	services.DB.Model(obj).Association("Tags").Replace(obj.Tags)
+	services.DB.Where("id IN (?)", authors).Find(&obj.Authors)
+	services.DB.Model(obj).Association("Authors").Replace(obj.Authors)
 
 	var err gorm.Errors
 	if tx.Save(obj).GetErrors(); len(err) > 0 {
@@ -494,7 +518,7 @@ func (r *mutationResolver) CreateComment(ctx context.Context, nickname string, e
 		// notice the comment owner
 		replyRecipient = targetComment.Email
 	}
-	services.Reply(email, replyRecipient, targetPost.Slug)
+	go services.Reply(email, replyRecipient, targetPost.Slug)
 	return obj, nil
 }
 

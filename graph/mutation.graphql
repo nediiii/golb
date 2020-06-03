@@ -63,7 +63,7 @@ type Mutation {
     paged: Boolean
     slug: String!
     status: String
-    tags: [String!]
+    tags: [ID!]
     title: String!
   ): Post! @hasLogin
   deletePost(id: ID!): Boolean! @hasLogin

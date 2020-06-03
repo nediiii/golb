@@ -17,7 +17,7 @@ func String2Uint(s string) uint {
 	i, err := strconv.Atoi(s)
 	if err != nil || i < 0 {
 		log.Println(i)
-		log.Fatal("utils.String2Uint encounted an error!", err)
+		log.Println("[Error!]: utils.String2Uint encounted an error!", err)
 	}
 	return uint(i)
 }
@@ -25,4 +25,10 @@ func String2Uint(s string) uint {
 // Time2UnixString Time2UnixString
 func Time2UnixString(t *time.Time) string {
 	return strconv.FormatInt(t.Unix(), 10)
+}
+
+// UnixString2Time UnixString2Time
+func UnixString2Time(s string) time.Time {
+	i, _ := strconv.ParseInt(s, 10, 64)
+	return time.Unix(i, 0)
 }
